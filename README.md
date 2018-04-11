@@ -12,11 +12,27 @@ The current version of the tool includes developed and optimized models for iden
  - Class D beta-lactamases
  - *qnr*
  
- 
+## Table of  contents
+
+* [Getting Started](#getting-started)
+   * [Prerequisites](#prerequisites)
+   * [Installing](#installing)
+* [Data analysis](#data-analysis)
+   * [Easy usage](#easy-usage)
+   * [Options and usage](#options-and-usage)
+   * [Output](#output)
+   * [Examples](#examples)
+* [Model creation and optimization](#model-creation-and-optimization)
+   * [Easy usage](#easy-usage-1)
+   * [Options and usage](#options-and-usage-1)
+   * [Output](#output-1)
+* [Tutorial](#tutorial)
+* [Other included tools](#other-included-tools)
+* [License](#license)
 
 ## Getting Started
 
-These instructions will get you a copy of the most up-to-date version of FARGene. 
+These instructions will get you a copy of the most up-to-date version of fARGene. 
 
 ### Prerequisites
 
@@ -182,7 +198,7 @@ optional arguments:
                         (default: pearson)
 ```
 
-### Output directories and files
+### Output
 
 The two most important output files are `predicted-orfs.fasta` and `predicted-orfs-amino.fasta` which are located in `output_dir/predictedGenes/`.
 
@@ -248,6 +264,8 @@ fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_c -o c
 
 ## Model creation and optimization
 
+### Easy usage
+
 To create and optimize threshold score for a new model using the default values (full-length genes and 10 000 fragments of length 33 aa)
 
 ```
@@ -301,7 +319,7 @@ optional arguments:
                         threshold score for full fragmented genes.                     
 ```
 
-### Output directories and files
+### Output
 
 The created HMM is located in `output_dir/hmmerModel` and is called `modelname.hmm`.
 
@@ -310,6 +328,10 @@ The two most important files from the estimation of sensitivity and specificity 
 This results is also visualized in the figures `resulting_sensitivity_specificity_modelname_full_length.png` `resulting_sensitivity_specificity_modelname_fragmentlength.png`.
 
 The combined results from the `hmmsearch` of full-length sequences are called `modelname-hmmsearch-refrence-sequences-full-length.txt`and `modelname-hmmsearch-negative-sequences-full-length.txt` and are useful to detect genes responsible for potenial outline scores.
+
+## Tutorial
+ 
+ For a tutorial of how to use fargene click [here](tutorial/tutorial.md)
 
 ## Other included tools
 
