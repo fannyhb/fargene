@@ -182,8 +182,6 @@ def main():
 def check_arguments(options):
     predefined = False
     model_location = path.dirname(__file__)+ '/models'
-    print model_location
-#    script_location = path.dirname(path.realpath(argv[0])) + '../models'
     preDefinedModels = [
             HmmModel("b1", model_location + "/B1.hmm",135.8,float(0.2424)),
             HmmModel("class_b_1_2", model_location + "/class_B_1_2.hmm",127,float(0.3636)),
