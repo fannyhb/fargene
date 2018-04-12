@@ -1,14 +1,15 @@
 ### fARGene tutorial
 
-This tutorial gives examples on how to use `fARGene` for identification of resistance genes in fragmented metagenomic data and in longer sequences.
+This tutorial gives examples on how to use `fARGene` for identification of resistance genes in fragmented metagenomic data and in longer sequences. It also gives examples on how to to create and optimize new models using `fargene_model_creation`.
 
 ## Getting started
 
-Install fARGene by following the instructions given [here](../blob/master/README.md).
+Install fARGene by following the instructions given [here](../README.md).
 
-Download the tutorial data.
+The tutorial data can be found in `/path/to/downloaded/fargene/tutorial/tutorialdata/`
+
 Consider the two FASTQ files `reads_1.fastq` and `reads_2.fastq`.
-They are simulated paired-end data consisting of fragments of length 100 bases randomly sampled from a klebsiella pneumoniae plasmid carrying the metallo-beta-lactamase gene blaNDM-1 (Yong et al 2009).
+They are simulated paired-end data consisting of fragments of length 100 bases randomly sampled from a *klebsiella pneumoniae* plasmid carrying the metallo-beta-lactamase blaNDM-1 (Yong et al 2009).
 The data furthermore consist of the above mentioned plasmid as full-length in the FASTA file `klebisella_plasmid.fasta`. 
 
 For the model creation and optimization, the tutorial data consists of the two files `class_b1_b2.fasta` and `mbl_superfamily.fasta`.
@@ -49,7 +50,7 @@ Where `predicted-orfs*` contain the assembled full-length NDM gene as amino and 
 
 ### Longer sequences as input
 
-To analyze the klebsiella pneumoniae plasmid, run 
+To analyze the *klebsiella pneumoniae* plasmid, run 
 
 ```
 fargene -i /path/to/tutorialdata/klebisella_plasmid.fasta --hmm-model class_b_1_2 -o tutorial_output_2
@@ -103,15 +104,19 @@ the suggested minimal score, score/AA and corresponding sensitivity and specific
 score=10.10   score/AA=0.3061 sensitivity=0.8401      specificity=0.9501
 ```
 
-The decide which threshold scores to set its helpful to look at the files `results/resulting_sensitivity_specificity_b1_b2_full_length.txt` and `results/resulting_sensitivity_specificity_b1_b2_33.txt` where the sensitivity and specificity is reported for each score.
+To decide which threshold scores to set it's helpful to look at the files `results/resulting_sensitivity_specificity_b1_b2_full_length.txt` and `results/resulting_sensitivity_specificity_b1_b2_33.txt` where the sensitivity and specificity is reported for each score.
 
-This result is also presented in the figure `results/resulting_sensitivity_specificity_b1_b2_full_length.png`
+For full-length genes, we see from `resulting_sensitivity_specificity_b1_b2_full_length.txt` that we can choose any score between 92 and 161 and get a sensitivity and specificity of 1. 
 
-![Alt text](resulting_sensitivity_specificity_b1_b2_full_length.png?raw=true "Sensitivity and 1-specificity full-length.")
+For fragments of 33aa, we see from `resulting_sensitivity_specificity_b1_b2_33.txt` that there is a trade off between the sensitivity and the specificity. If we want a minimal specificity of 0.96, the corresponding sensitivity would be 0.81. The domain score would then be chosen to be 12. The estimation was done on fragments of length 33 aa and therefore the meta-score would be set to 0.3636 (12/33).
 
-and in the figure `results/resulting_sensitivity_specificity_b1_b2_33.png`
+To get a better overview of the estimation of the sensitivity and specificity, it is useful to look at the figure `results/resulting_sensitivity_specificity_b1_b2_full_length.png`
+
+![Full-length](resulting_sensitivity_specificity_b1_b2_full_length.png?raw=true "Sensitivity and 1-specificity full-length.")
+
+and figure `results/resulting_sensitivity_specificity_b1_b2_33.png`
+
 
 ![Alt text](resulting_sensitivity_specificity_b1_b2_33.png?raw=true "Sensitivity and 1-specificity fragments.")
 
-
-
+where the sensitivity and 1-specificity are plotted as a function of the domain score.
