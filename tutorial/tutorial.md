@@ -112,11 +112,11 @@ For fragments of 33aa, we see from `resulting_sensitivity_specificity_b1_b2_33.t
 
 To get a better overview of the estimation of the sensitivity and specificity, it is useful to look at the figure `results/resulting_sensitivity_specificity_b1_b2_full_length.png`
 
-![Full-length](resulting_sensitivity_specificity_b1_b2_full_length.png?raw=true "Sensitivity and 1-specificity full-length.")
+![Full-length](misc/resulting_sensitivity_specificity_b1_b2_full_length.png?raw=true "Sensitivity and 1-specificity full-length.")
 
 and figure `results/resulting_sensitivity_specificity_b1_b2_33.png`
 
 
-![Alt text](resulting_sensitivity_specificity_b1_b2_33.png?raw=true "Sensitivity and 1-specificity fragments.")
+![Alt text](misc/resulting_sensitivity_specificity_b1_b2_33.png?raw=true "Sensitivity and 1-specificity fragments.")
 
 where the sensitivity and 1-specificity are plotted as a function of the domain score.
