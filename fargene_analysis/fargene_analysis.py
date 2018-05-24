@@ -96,7 +96,7 @@ def parse_args(argv):
             rerun = False,
             amino_dir = False,
             force = False,
-            out_dir = './novelGeneFinder')
+            out_dir = './fargene_output')
 
 
     options = parser.parse_args()
@@ -294,7 +294,7 @@ def parse_fasta_input(options,Results):
                 utils.perform_hmmsearch(peptideFile,options.hmm_model,hmmOut,options)
             else:
                 utils.translate_and_search(fastafile,options.hmm_model,hmmOut,options)
-                utils.classifier(hmmOut,hitFile,options)
+#                utils.classifier(hmmOut,hitFile,options)
             utils.classifier(hmmOut,hitFile,options)
             Results.count_hits(hitFile)
             hitDict = utils.create_dictionary(hitFile,options)
@@ -302,12 +302,14 @@ def parse_fasta_input(options,Results):
             utils.retrieve_surroundings(hitDict,fastafile,elongated_fasta)
             if path.isfile(elongated_fasta):
                 predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
-                utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile)
+                utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
                 Results.count_orfs_genomes(orfFile)
             if options.store_peptides:
+                options.retrieve_whole = False
                 utils.retrieve_peptides(hitDict,peptideFile,aminoOut,options)
             else:
-                utils.retrieve_predicted_genes_as_amino(options,fastaOut,aminoOut)
+                tmpFastaOut = utils.make_fasta_unique(fastaOut,options)
+                utils.retrieve_predicted_genes_as_amino(options,tmpFastaOut,aminoOut,frame='6')
     return orfFile
 
 

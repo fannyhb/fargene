@@ -233,6 +233,20 @@ def retrieve_peptides(hitDict,aminoInFile,aminoOut,options):
                         ali_start, ali_end = int(info[1]),int(info[2])
                         outfile.write('%s\n%s\n' %(header,seq[ali_start:ali_end]))
 
+def make_fasta_unique(fastaout,options):
+    tmp_fastaout = '%s/fastaout_tmp.fasta' %(abspath(options.tmp_dir))
+    f = open(tmp_fastaout,'w')
+    header_dictionary = {}
+    for header, seq in read_fasta(fastaout,False):
+        header = header.split()[0]
+        if header_dictionary.has_key(header):
+            header_dictionary[header] = header_dictionary[header] + 1
+        else:
+            header_dictionary[header] = 1
+        header = '>%s_seq%s' %(header,str(header_dictionary[header]))
+        f.write('%s\n%s\n' %(header,seq))
+    f.close()
+    return tmp_fastaout
 
 def retrieve_assembled_genes(options):
     options.meta = False
@@ -312,10 +326,9 @@ def orf_classifier(hmmOut,hitFile,options):
 
 
 
-def retrieve_predicted_genes_as_amino(options,retrievedNucFile,aminoOut):
+def retrieve_predicted_genes_as_amino(options,retrievedNucFile,aminoOut,frame):
     options.meta = False
     options.retrieve_whole = True
-    frame = '6'
     modelName = splitext(basename(options.hmm_model))[0]
     aminoTmpFile = '%s/retrieved-translated.fasta' %(abspath(options.tmp_dir))
     hmmOut = '%s/retrieved-genes-%s-hmmsearched.out' %(abspath(options.hmm_out_dir),modelName)
@@ -342,8 +355,8 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
         nlen = len(seq)
         s_id = header.split()[0]
         if hitDict.has_key(s_id):
-            header = '>' + fastaBaseName + '_' + header
             for i in range(0,len(hitDict[s_id])):
+                header = '>' + fastaBaseName + '_' + s_id + '_seq' + str(i+1)
                 info = hitDict[s_id][i]
                 ali_start, ali_end = int(info[1]),int(info[2])
                 ali_start, ali_end = translate_position(info[1],info[2],info[3],info[0],nlen)

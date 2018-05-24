@@ -1,4 +1,4 @@
-### fARGene tutorial
+# fARGene tutorial
 
 This tutorial gives examples on how to use `fARGene` for identification of resistance genes in fragmented metagenomic data and in longer sequences. It also gives examples on how to to create and optimize new models using `fargene_model_creation`.
 
