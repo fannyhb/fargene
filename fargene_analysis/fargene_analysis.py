@@ -61,6 +61,8 @@ def parse_args(argv):
                         help = 'Use if no quality control should be performed on the metagenomic data.')
     parser.add_argument('--no-assembly',action='store_true',dest='no_assembly',
                         help = 'Use if you want to skip the assembly and retrieval of contigs for metagenomic data.')
+    parser.add_argument('--orf-finder',action='store_true',dest='orf_finder',
+                        help = 'Use NCBI ORFfinder instead of prodigal for ORF prediction of genomes/contigs')
 
 
     parser.add_argument('--store-peptides','-sp',default=False,action='store_true',dest='store_peptides',
@@ -96,6 +98,7 @@ def parse_args(argv):
             rerun = False,
             amino_dir = False,
             force = False,
+            orf_finder = False,
             out_dir = './fargene_output')
 
 
@@ -296,20 +299,30 @@ def parse_fasta_input(options,Results):
                 utils.translate_and_search(fastafile,options.hmm_model,hmmOut,options)
 #                utils.classifier(hmmOut,hitFile,options)
             utils.classifier(hmmOut,hitFile,options)
-            Results.count_hits(hitFile)
+#            Results.count_hits(hitFile)
             hitDict = utils.create_dictionary(hitFile,options)
             utils.retrieve_fasta(hitDict,fastafile,fastaOut,options)
+            if not path.isfile(fastaOut):
+                exit()
             utils.retrieve_surroundings(hitDict,fastafile,elongated_fasta)
             if path.isfile(elongated_fasta):
-                predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
-                utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
-                Results.count_orfs_genomes(orfFile)
+                if not options.orf_finder:
+                    predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
+                    utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
+                    Results.count_orfs_genomes(orfFile)
+                else:
+                    tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
+                    predict_orfs_orfFinder(elongated_fasta,options.tmp_dir, tmpORFfile,options.min_orf_length)
+                    orfFile = utils.retrieve_predicted_orfs(options,tmpORFfile)
+                    Results.predictedOrfs = Results.count_contigs(orfFile)
+#                Results.count_orfs_genomes(orfFile)
             if options.store_peptides:
                 options.retrieve_whole = False
                 utils.retrieve_peptides(hitDict,peptideFile,aminoOut,options)
             else:
                 tmpFastaOut = utils.make_fasta_unique(fastaOut,options)
                 utils.retrieve_predicted_genes_as_amino(options,tmpFastaOut,aminoOut,frame='6')
+        Results.count_hits(hitFile)
     return orfFile
 
 
@@ -380,11 +393,13 @@ def parse_fastq_input(options, Results):
         logging.info('Done')
         print 'Running retrieval of assembled genes.'
         logging.info('Running retrieval of assembled genes.')
-        retrievedContigs = utils.retrieve_assembled_genes(options)
+        retrievedContigs,hits = utils.retrieve_assembled_genes(options)
         if path.isfile(retrievedContigs):
             print 'Predicting ORFS.'
+            elongatedFasta ='%s/%s-gene-elongated.fasta' %(path.abspath(options.tmp_dir),path.basename(retrievedContigs).rpartition('.')[0])
             orfFile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,path.basename(retrievedContigs).rpartition('.')[0])
-            predict_orfs_orfFinder(retrievedContigs,options.tmp_dir,orfFile,options.min_orf_length) 
+            utils.retrieve_surroundings(hits,retrievedContigs,elongatedFasta)
+            predict_orfs_orfFinder(elongatedFasta,options.tmp_dir,orfFile,options.min_orf_length) 
             retrievedOrfs = utils.retrieve_predicted_orfs(options,orfFile)
 #            utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile)
             Results.predictedOrfs = Results.count_contigs(retrievedOrfs)

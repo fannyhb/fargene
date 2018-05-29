@@ -267,7 +267,7 @@ def retrieve_assembled_genes(options):
         retrieve_peptides(hitDict,aminoFile,aminoOut,options)
         options.retrieve_whole = True
         retrieve_fasta(hitDict,contigFile,fastaOut,options)
-        return fastaOut
+        return (fastaOut,hitDict)
     else:
         logging.error('The file %s does not exist' %(contigFile))
 
@@ -351,12 +351,18 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
         logging.error(msg)
         return
     outfile = open(elongatedFastaOutfile,'w')
+    if fastaBaseName == 'retrieved-contigs':
+        addition = 'contigs_'
+    else:
+        addition = ''
     for header, seq in read_fasta(fastaInfile,False):
         nlen = len(seq)
         s_id = header.split()[0]
+        s_id = s_id.lstrip(addition)
         if hitDict.has_key(s_id):
             for i in range(0,len(hitDict[s_id])):
-                header = '>' + fastaBaseName + '_' + s_id + '_seq' + str(i+1)
+#                header = '>' + fastaBaseName + '_' + s_id + '_seq' + str(i+1)
+                header = '>' + s_id + '_seq' + str(i+1)
                 info = hitDict[s_id][i]
                 ali_start, ali_end = int(info[1]),int(info[2])
                 ali_start, ali_end = translate_position(info[1],info[2],info[3],info[0],nlen)
