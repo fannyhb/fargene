@@ -1,9 +1,9 @@
-from utils import read_fasta
-#from Bio.Seq import Seq
+from os import path
 import shlex
 import subprocess as sp
-from os import path
 import logging
+
+from utils import read_fasta
 
 def run_prodigal(infile,outfile):
     'prodigal -i infile -f gff -o genes.gff'

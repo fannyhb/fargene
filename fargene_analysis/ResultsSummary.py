@@ -14,7 +14,6 @@ class ResultsSummary(object):
         self.retrievedContigs = None
         self.predictedOrfs = 0
 
-
     def count_hits_deprecated(self,infiles,hitDir):
         count = 0
         for fastafile in infiles:
@@ -32,7 +31,6 @@ class ResultsSummary(object):
         c,_ = sp.Popen(commands, stdin=sp.PIPE,stdout = sp.PIPE).communicate()
         self.retrievedSequences = self.retrievedSequences + int(c.split()[0])
 
-
     def count_contigs(self,contigFile):
         count = 0
         if contigFile==None or not path.isfile(contigFile):
@@ -42,7 +40,6 @@ class ResultsSummary(object):
                 if line.startswith('>'):
                     count = count + 1
         return count
-
 
     def count_orfs_genomes(self,orfFile):
         if not path.isfile(orfFile):
