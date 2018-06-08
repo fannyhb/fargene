@@ -34,7 +34,7 @@ def parse_args(argv):
                         help = 'The threshold score for a fragment to be classified as a positive. '\
                         'Expressed as score per amino acid (default: %(default)s).')
     
-    parser.add_argument('--output','-o', dest='out_dir',
+    parser.add_argument('--output','-o', dest='out_dir', metavar='OUTDIR',
                         help='The output directory for the whole run (default: %(default)s).')
     parser.add_argument('--force','-f',action='store_true',
                         help='Overwrite output directory if it exists (default: %(default)s).')
@@ -85,6 +85,11 @@ def parse_args(argv):
     parser.add_argument('--translation-format', default='pearson', dest='trans_format',
             help= 'The translation format that transeq should use. (default: %(default)s)')
 
+    parser.add_argument('--loglevel', choices=['DEBUG', 'INFO'], default='INFO', type=str,
+                        help='Set logging level (default: %(default)s).')
+    parser.add_argument('--logfile', type=str, default='fargene_analysis.log',
+                        help='Logfile (default: %(default)s).')
+
     parser.set_defaults(
             meta = False,
             retrieve_whole = False,
@@ -105,37 +110,44 @@ def parse_args(argv):
             out_dir = './fargene_output')
 
     options = parser.parse_args()
-    return options
+
+    logger = logging.getLogger(__name__)
+    if options.loglevel == 'DEBUG':
+	    logger.setLevel(logging.DEBUG)
+    else:
+	    logger.setLevel(logging.INFO)
+    logging_format_file = '%(asctime)s %(levelname)s %(message)s'
+    logging_format_console = '%(asctime)s %(levelname)s %(message)s'
+    file_handler = logging.FileHandler(options.logfile)
+    console_handler = logging.StreamHandler()
+    file_handler.setFormatter(logging_format_file)
+    console_handler.setFormatter(logging_format_console)
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return options, logger
 
 def main():
     
-    options = parse_args(argv)
+    options, logger = parse_args(argv)
     if path.isdir(options.out_dir) and not options.force:
         msg = ('The directory {0} already exists. To overwrite use the'
                 ' --force flag').format(options.out_dir)
-        print msg
+        logger.error(msg)
+        logger.info('Exiting pipeline')
         exit()
     else:
         utils.create_dir(options.out_dir)
     outdir = path.abspath(options.out_dir)
 
-    try:
-        logging.basicConfig(filename='%s/novelGeneFinder.log' %outdir,filemode='w',
-            format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
-    except IOError as e:
-        errorMsg ='Could not create logfile.\n\
-                I/O error({0}): {1}'.format(e.errno, e.strerror)
-        print errorMsg 
-        
-    logging.info('Starting pipeline\nAre to analyze %s files' %str(len(options.infiles)))
-    logging.info('Running on %s processes' %str(options.processes))
+    logger.info('Starting pipeline\nPlanning to analyze %s files' %str(len(options.infiles)))
+    logger.info('Running on %s processes' %str(options.processes))
     
     for infile in options.infiles:
         if not path.isfile(infile):
             msg ='The provided input file {0} does not exist.'.format(infile)
-            print msg
-            logging.critical(msg)
-            logging.info('Exiting pipeline')
+            logger.critical(msg)
+            logger.info('Exiting pipeline')
             exit()
 
     options.hmm_out_dir = '%s/hmmsearchresults' %(outdir)
@@ -145,7 +157,7 @@ def main():
     options.final_gene_dir = '%s/predictedGenes' %(outdir)
     options.assembly_dir = '%s/spades_assembly' %(outdir)
 
-    check_arguments(options)
+    check_arguments(options, logger)
 
     utils.create_dir(options.hmm_out_dir)
     utils.create_dir(options.tmp_dir)
@@ -160,10 +172,10 @@ def main():
     summaryFile = '%s/results_summary.txt' %(outdir)
     Results = ResultsSummary(summaryFile, len(options.infiles), options.hmm_model)
 
-    print 'Starting GENIE'
+    logger.info('Starting fARGene')
 
     if not options.meta:
-        parse_fasta_input(options,Results)
+        parse_fasta_input(options, Results, logger)
         Results.write_summary(False)
         numGenes = Results.retrievedSequences
         retrieved = 'possible genes'
@@ -173,16 +185,16 @@ def main():
         Results.write_summary(True)
         numGenes = Results.retrievedContigs
         retrieved = 'retrieved contigs'
-    logging.info('Done with pipeline')
+    logger.info('Done with pipeline')
     
-    msg = ('GENIE is done.\n'
-            'Total number of {}: {}\n'
-            'Total number of predicted ORFS longer than {} nt: {}\n'
-            'Output can be found in {}'
-            ).format(retrieved,numGenes,options.min_orf_length,Results.predictedOrfs,outdir)
-    print msg
+    msg = ('fARGene is done.\n'
+           'Total number of {}: {}\n'
+           'Total number of predicted ORFS longer than {} nt: {}\n'
+           'Output can be found in {}'
+           ).format(retrieved, numGenes, options.min_orf_length, Results.predictedOrfs, outdir)
+    logger.info(msg)
 
-def check_arguments(options):
+def check_arguments(options, logger):
     predefined = False
     model_location = path.dirname(__file__)+ '/models'
     preDefinedModels = [
@@ -211,37 +223,36 @@ def check_arguments(options):
                  "Either provide a valid path to a HMM or choose "
                  "one of the following pre-defined models:\n{1}").format(
                          options.hmm_model,names)
-        print msg
-        logging.critical(msg)
-        logging.info('Exiting pipeline')
+        logger.critical(msg)
+        logger.info('Exiting pipeline')
         exit()
 
     if not predefined:
         if options.long_score is None:
             msg = "No threshold score for whole genes was given.\n"+\
             "Please provide one using the option --score"     
-            print msg
-            logging.critical(msg)
+            logger.critical(msg)
+            logger.info('Exiting pipeline')
             exit()
         if options.meta and options.meta_score is None:
             msg = "No threshold score for metagenomic fragments was given.\n"+\
             "Please provide one using the option --meta-score"     
-            print msg
-            logging.critical(msg)
+            logger.critical(msg)
+            logger.info('Exiting pipeline')
             exit()
 
     topFile = options.infiles[0]
     if options.meta:
         if not utils.is_fastq(topFile):
             msg = "If using the meta options, the input files must be FASTQ"
-            logging.critical(msg)
-            print msg
+            logger.critical(msg)
+            logger.info('Exiting pipeline')
             exit()
     else:
         if not utils.is_fasta(topFile):
             msg = "If not using the meta option, the input file(s) must be FASTA"
-            logging.critical(msg)
-            print msg           
+            logger.critical(msg)
+            logger.info('Exiting pipeline')
             exit()              
 
     if not options.min_orf_length:
@@ -265,15 +276,14 @@ def check_arguments(options):
             if not path.isfile(fastaFile):
                 msg = 'Neither nucleotide or amino sequences exists as FASTA.\n'\
                         'Please provide path to amino or nucleotide sequences or remove flag --rerun'
-                logging.critical(msg)
-                print msg + '\nExiting pipeline'
-                logging.info('Exiting pipeline')
+                logger.critical(msg)
+                logger.info('Exiting pipeline')
                 exit()
 
 
-def parse_fasta_input(options,Results):
+def parse_fasta_input(options, Results, logger):
     modelName = path.splitext(path.basename(options.hmm_model))[0]
-    print 'Parsing FASTA files'
+    logger.info('Parsing FASTA files')
     frame = '6'
     for fastafile in options.infiles:
         fastaBaseName = path.basename(fastafile).rpartition('.')[0]
@@ -293,7 +303,7 @@ def parse_fasta_input(options,Results):
             if options.store_peptides:
                 peptideFile ='%s/%s-amino.fasta' %(path.abspath(options.tmp_dir), fastaBaseName)
                 utils.translate_sequence(fastafile, peptideFile, options, frame)
-                logging.info('Performing hmmsearch')
+                logger.info('Performing hmmsearch')
                 utils.perform_hmmsearch(peptideFile, options.hmm_model, hmmOut, options)
             else:
                 utils.translate_and_search(fastafile, options.hmm_model, hmmOut, options)
@@ -303,6 +313,7 @@ def parse_fasta_input(options,Results):
             hitDict = utils.create_dictionary(hitFile, options)
             utils.retrieve_fasta(hitDict, fastafile, fastaOut, options)
             if not path.isfile(fastaOut):
+                logger.critial('Could not find file %s', fastaOut)
                 exit()
             utils.retrieve_surroundings(hitDict, fastafile, elongated_fasta)
             if path.isfile(elongated_fasta):
@@ -326,7 +337,7 @@ def parse_fasta_input(options,Results):
     return orfFile
 
 
-def parse_fastq_input(options, Results):
+def parse_fastq_input(options, Results, logger):
     '''
     If the input is .fastq
     Pooled:
@@ -340,14 +351,14 @@ def parse_fastq_input(options, Results):
         doing this after classification to save RAM
     5) Retrieves the hits in fastq using seqtk
     '''
-    logging.info('Starting parse_fastq_input')
+    logger.info('Starting parse_fastq_input')
     modelName = path.splitext(path.basename(options.hmm_model))[0]
     fastqPath = path.dirname(path.abspath(options.infiles[0])) # Assuming the path is the same to every input fastqfile
     if options.processes > cpu_count():
         options.processes = cpu_count()
 
     if not options.rerun:
-        print 'Converting FASTQ to FASTA'
+        logger.info('Converting FASTQ to FASTA')
         for fastqfile in options.infiles:
             fastqBaseName = path.splitext(path.basename(fastqfile))[0]
             fastafile = '%s/%s.fasta' %(path.abspath(options.tmp_dir), fastqBaseName)
@@ -355,12 +366,13 @@ def parse_fastq_input(options, Results):
    
     p = Pool(options.processes)
     
-    print 'Processing and searching input files. This may take a while...'
+    logger.info('Processing and searching input files. This may take a while...')
 
     try:
-        bases_files = p.map(pooled_processing_fastq, itertools.izip((options.infiles), itertools.repeat(options)))  
+        pooled_processing_fastq_with_logger = partial(pooled_processing_fastq, logger=logger)
+        bases_files = p.map(pooled_processing_fastq_with_logger, itertools.izip((options.infiles), itertools.repeat(options)))  
     except KeyboardInterrupt:
-        print "\nCaught a KeyboardInterrupt. Terminating..."
+        logger.warning('\nCaught a KeyboardInterrupt. Terminating...')
         p.terminate()
         p.join()
         exit()
@@ -370,29 +382,26 @@ def parse_fastq_input(options, Results):
     transformer.find_file_difference(options.infiles[0], options.infiles[1])
     transformer.find_header_endings(options.infiles[0], options.infiles[1])
 
-    print 'Retrieving hits from input files.'
+    logger.info('Retrieving hits from input files.')
     
     for fastqbase_hitfile in bases_files:
         fastqDict = utils.add_hits_to_fastq_dictionary(fastqbase_hitfile[1],
                 fastqDict, fastqbase_hitfile[0], options, transformer)
-    logging.info('Retrieving fastqfiles')
+    logger.info('Retrieving fastqfiles')
     utils.retrieve_paired_end_fastq(fastqDict, fastqPath, options, transformer) 
     
     if not options.no_quality_filtering:
-        logging.info('Doing quality control')
-        print 'Performing quality control'
+        logger.info('Performing quality control')
         utils.quality(fastqDict.keys(), options)
-    logging.info('Done')
+    logger.info('Done')
     if not options.no_assembly:
-        print 'Running assembly using SPAdes'
-        logging.info('Running SPAdes')
+        logger.info('Running assembly using SPAdes')
         utils.run_spades(options)
-        logging.info('Done')
-        print 'Running retrieval of assembled genes.'
-        logging.info('Running retrieval of assembled genes.')
+        logger.info('Done')
+        logger.info('Running retrieval of assembled genes.')
         retrievedContigs,hits = utils.retrieve_assembled_genes(options)
         if path.isfile(retrievedContigs):
-            print 'Predicting ORFS.'
+            logger.info('Predicting ORFS.')
             elongatedFasta ='%s/%s-gene-elongated.fasta' %(path.abspath(options.tmp_dir), path.basename(retrievedContigs).rpartition('.')[0])
             orfFile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, path.basename(retrievedContigs).rpartition('.')[0])
             utils.retrieve_surroundings(hits, retrievedContigs, elongatedFasta)
@@ -402,7 +411,7 @@ def parse_fastq_input(options, Results):
             Results.predictedOrfs = Results.count_contigs(retrievedOrfs)
         Results.retrievedContigs = Results.count_contigs(retrievedContigs)
 
-def pooled_processing_fastq(fastqfile_options):
+def pooled_processing_fastq(fastqfile_options, logger):
     try:
         fastqfile, options = fastqfile_options[0], fastqfile_options[1]
         modelName = path.splitext(path.basename(options.hmm_model))[0]
@@ -411,32 +420,32 @@ def pooled_processing_fastq(fastqfile_options):
         fastafile = '%s/%s.fasta' %(path.abspath(options.tmp_dir), fastqBaseName)
         hmmOut = '%s/%s-%s-hmmsearched.out' %(path.abspath(options.hmm_out_dir), fastqBaseName, modelName)
         hitFile = '%s/%s-positives.out' %(path.abspath(options.tmp_dir), fastqBaseName)
-        logging.info('Converting fastq to fasta')
+        logger.info('Converting fastq to fasta')
         if options.rerun:
             peptideFile ='%s/%s-amino.fasta' %(options.amino_dir, fastqBaseName)
             if path.isfile(peptideFile):
-                logging.info('Performing hmmsearch')
+                logger.info('Performing hmmsearch')
                 utils.perform_hmmsearch(peptideFile, options.hmm_model, hmmOut, options)
             else:
                 fastafile = '%s/%s.fasta' %(options.fasta_dir, fastqBaseName)
-                logging.info('Translating and searching')
+                logger.info('Translating and searching')
                 utils.translate_and_search(fastafile, options.hmm_model, hmmOut, options)
 
         elif options.store_peptides:
-            logging.info('Translating')
+            logger.info('Translating')
             peptideFile ='%s/%s-amino.fasta' %(path.abspath(options.tmp_dir), fastqBaseName)
             frame = '6'
             if not options.rerun:
                 utils.translate_sequence(fastafile, peptideFile, options, frame)
-            logging.info('Performing hmmsearch')
+            logger.info('Performing hmmsearch')
             utils.perform_hmmsearch(peptideFile, options.hmm_model, hmmOut, options)
         else:
-            logging.info('Translating and searching')
+            logger.info('Translating and searching')
             utils.translate_and_search(fastafile, options.hmm_model, hmmOut, options)
-        logging.info('Start to classify')
+        logger.info('Start to classify')
         utils.classifier(hmmOut, hitFile, options)
 
-        logging.info('Translating,searching and classification done')
+        logger.info('Translating,searching and classification done')
         
         fastqPath = path.dirname(path.abspath(fastqfile)) # Assuming the path is the same to every input fastqfile
         return fastqFilesBaseName, hitFile
