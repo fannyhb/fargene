@@ -36,8 +36,6 @@ These instructions will get you a copy of the most up-to-date version of fARGene
 
 ### Prerequisites
 
-
-
 - Python 2.x
 - [EMBOSS transeq](http://emboss.sourceforge.net/download/)
 - [seqtk](https://github.com/lh3/seqtk)
@@ -49,13 +47,12 @@ These instructions will get you a copy of the most up-to-date version of fARGene
 - For long-read data
   - [prodigal](https://github.com/hyattpd/Prodigal) (optional)
 
-Some of these requirements are optional but might affect the results. If you skipped the installation of Trim Galore!, the option `--no-quality-filtering` must be used. If you skipped installation of ORFfinder/prodigal for short-read/long-read data, the option `--no-orf-prediction`must be used. fARGene expects these tools to be available in `$PATH`.
+Some of these requirements are optional but might affect the results. If you for example skip the installation of Trim Galore!, the option `--no-quality-filtering` must be used. If you skip the installation of ORFfinder/prodigal for short-read/long-read data, the option `--no-orf-prediction` must be used. fARGene expects these tools to be available in `$PATH`.
 
-For the model creation package you need the following python packages:
+For the model creation package you aditionally need the following Python packages:
 
 - numpy
 - matplotlib
-
 
 ### Installing
 
@@ -65,9 +62,10 @@ git clone https://github.com/fannyhb/fargene.git
 cd fargene
 python setup.py install
 ```
+
 Note:
 
-setup.py will look for and try to install numpy and matplotlib so make sure that you either 
+setup.py will look for and try to install numpy and matplotlib so make sure that you either:
 - have these packages installed
 - run setup.py as root or with sudo
 - install the program in a [conda](https://conda.io/docs/user-guide/install/download.html) environment. 
@@ -76,7 +74,7 @@ setup.py will look for and try to install numpy and matplotlib so make sure that
 
 ### Easy usage
 
-Fragmented metagenomic input
+**Fragmented metagenomic input**
 
 ```
 fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_a -o output_dir -p num_of_processes
@@ -84,13 +82,13 @@ fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_a -o o
 
 Note that the FASTQ files must be paired-end.
 
-Genomes or longer contigs as nucleotide sequences as input
+**Genomes or longer contigs as nucleotide sequences as input**
 
 ```
 fargene -i path/to/fastafile(s)/*.fasta --hmm-model class_a -o output_dir
 ```
 
-Genomes or longer contigs as protein sequences as input
+**Genomes or longer contigs as protein sequences as input**
 
 ```
 fargene -i path/to/fastafile(s)/*.fasta --protein --hmm-model class_a -o output_dir
@@ -116,10 +114,6 @@ Note that the meta score is given as score per aa.
 If the input is not fragmented data then the `--meta-score` is not required.
 
 It is also possible to change the scores for the predifened models, just add the option `--score new_score` and/or `--meta-score new_meta_score`.
-
-
-
-
 
 ### Options and usage
 
@@ -261,7 +255,6 @@ fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_c -o c
 --rerun --amino-dir class_a_out/tmpdir/
 ```
 
-
 ## Model creation and optimization
 
 ### Easy usage
@@ -274,7 +267,7 @@ fargene_model_creation --reference-sequences file_with_reference_sequences.fasta
 --output output_dir
 ```
 
-Where both the reference- and negativ sequences should be protein sequences.
+Where both the reference and negative sequences should be protein sequences.
 
 ### Options and usage
 
@@ -331,13 +324,14 @@ The combined results from the `hmmsearch` of full-length sequences are called `m
 
 ## Tutorial
  
- For a tutorial of how to use fargene click [here](tutorial/tutorial.md)
+For a tutorial of how to use fargene click [here](tutorial/tutorial.md).
 
 ## Other included tools
 
 fARGene comes with a third tool called `pick_long_reads` which can extract sequences longer than a certain length.
 
 Usage for nucleotide sequences:
+
 ```
 pick_long_reads -i all_contigs.fasta --length 800 -o contigs_longer_than_800nt.fasta
 ```
@@ -348,11 +342,6 @@ Usage for protein sequences:
 pick_long_reads -i all_contigs-amino.fasta --length 250 --cut-stars -o contigs_longer_than_250aa.fasta
 ```
 
-
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-
-
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
