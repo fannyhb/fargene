@@ -1,17 +1,17 @@
+from os import path, makedirs, system
+from random import randint
+from multiprocessing import Pool, cpu_count
+from distutils.spawn import find_executable
 import glob
 import shlex, subprocess
-#from read_fasta import read_fasta
 import glob
 import argparse
-from random import randint
-from os import path, makedirs, system
 import os
 import time
-from multiprocessing import Pool, cpu_count
 import logging
 
 
-def estimate_sensitivity(reference_sequences,est_obj,args):
+def estimate_sensitivity(reference_sequences, est_obj,args):
     full_seq = est_obj.full_length 
     modelpath = './' + args.modelname + '/'
     tmpdir = est_obj.tmpdir
@@ -106,12 +106,18 @@ def create_subsets(fastafile,subsetpath,num_fragments, fragment_length,full_seq)
                 subsetfile.write(">%s\n%s\n" %(header2,seq2))
 
 def create_model(fastafile, alignfile, hmmfile):
+    clustalo_path = find_executable('clustalo')
+    if clustalo_path:
+        logging.debug('Found clustalo at: %s', clustalo_path)
+    else:
+        logging.critical('Cannot find Clustal Omega (clustalo)!')
+        exit()
     call_list = ''.join(['clustalo -quiet -infile=',fastafile, \
             ' -align -outfile=',alignfile, ' -output=fasta'])
     commands = shlex.split(call_list)
     with open(os.devnull,'w') as devnull:
         subprocess.Popen(commands, stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,stdout=devnull).communicate()
+                stderr=subprocess.PIPE, stdout=devnull).communicate()
     
         call_list = ''.join(['hmmbuild ',hmmfile,' ', alignfile])
         commands = shlex.split(call_list)

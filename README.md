@@ -49,10 +49,11 @@ These instructions will get you a copy of the most up-to-date version of fARGene
 
 Some of these requirements are optional but might affect the results. If you for example skip the installation of Trim Galore!, the option `--no-quality-filtering` must be used. If you skip the installation of ORFfinder/prodigal for short-read/long-read data, the option `--no-orf-prediction` must be used. fARGene expects these tools to be available in `$PATH`.
 
-For the model creation package you aditionally need the following Python packages:
+For the model creation package you additionally need the following packages:
 
 - numpy
 - matplotlib
+- [ClustalO](http://www.clustal.org/omega/)
 
 ### Installing
 
