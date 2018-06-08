@@ -162,7 +162,7 @@ def run_spades(options):
         msg = ['cat %s/*_%s.fq > %s' 
                 %(abspath(options.res_dir),str(i),retrievedFastqGrouped[i-1]) for i in range(1,3)]
     for command in msg:
-        sp.call(command,shell=True)
+        sp.call(command, shell=True)
     
     tmp_spades_out = '%s/spades_out.txt' %(abspath(options.tmp_dir))
     spades_msg = 'spades.py --meta -1 %s -2 %s -o %s > %s'\

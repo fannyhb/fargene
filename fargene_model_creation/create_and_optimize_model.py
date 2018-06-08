@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 import argparse
 from sys import argv
 from os import path, makedirs
@@ -10,13 +11,15 @@ import logging
 
 def parse_args(argv):
     desc = 'A program to create and optimize profile hidden Markov models'
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument('--reference-sequences','-rin',dest='reference_sequences',
-                        required = True,
+    copyright = 'Copyright (c) Fanny Berglund 2018.'
+    parser = argparse.ArgumentParser(description=desc + '. ' + copyright)
+    parser.add_argument('--reference-sequences','-rin', dest='reference_sequences',
+                        required=True,
                         help = 'The sequences that the model should be built of.')
-    parser.add_argument('--negative-sequences','-nin',dest='negative_sequences',
+    parser.add_argument('--negative-sequences','-nin', dest='negative_sequences',
+                        required=True,
                         help='The sequences that should be used as the negative dataset.\n'\
-                                'Should preferable be similar sequences but without the desired phenotype.')
+                             'Should preferable be similar sequences but without the desired phenotype.')
     parser.add_argument('--output','-o',dest='output_dir',
                         help = 'The directory where the output should be saved.')
     parser.add_argument('--modelname',dest = 'modelname',
@@ -45,7 +48,6 @@ def parse_args(argv):
 #                                'The location of the file containing the fragments should then be '\
 #                                'specified using the --negative-sequences argument')
 
-
     parser.set_defaults(modelname = 'new_model',
             output_dir = './model_validation',
             create_fragments = True,
@@ -57,6 +59,7 @@ def parse_args(argv):
             num_fragments = 10000)
     options = parser.parse_args()
     return options
+
 
 def main():
     
@@ -95,6 +98,7 @@ def main():
     if not options.specificity:
         create_hmm(options,est_obj)
 
+
 def create_dirs(options):
     if not path.isdir(path.abspath(options.output_dir)):
         makedirs(options.output_dir)
@@ -108,6 +112,7 @@ def create_dirs(options):
     if not path.isdir(path.abspath(hmmdir)):
         makedirs(hmmdir)
     return tmpdir,resultsdir,hmmdir    
+
 
 def create_hmm(args,est_obj):
     modeldir = est_obj.hmmdir
