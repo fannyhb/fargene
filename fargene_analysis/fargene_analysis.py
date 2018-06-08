@@ -116,8 +116,8 @@ def parse_args(argv):
 	    logger.setLevel(logging.DEBUG)
     else:
 	    logger.setLevel(logging.INFO)
-    logging_format_file = '%(asctime)s %(levelname)s %(message)s'
-    logging_format_console = '%(asctime)s %(levelname)s %(message)s'
+    logging_format_file = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    logging_format_console = logging.Formatter('%(levelname)s: %(message)s')
     file_handler = logging.FileHandler(options.logfile)
     console_handler = logging.StreamHandler()
     file_handler.setFormatter(logging_format_file)
@@ -140,9 +140,6 @@ def main():
         utils.create_dir(options.out_dir)
     outdir = path.abspath(options.out_dir)
 
-    logger.info('Starting pipeline\nPlanning to analyze %s files' %str(len(options.infiles)))
-    logger.info('Running on %s processes' %str(options.processes))
-    
     for infile in options.infiles:
         if not path.isfile(infile):
             msg ='The provided input file {0} does not exist.'.format(infile)
@@ -173,6 +170,9 @@ def main():
     Results = ResultsSummary(summaryFile, len(options.infiles), options.hmm_model)
 
     logger.info('Starting fARGene')
+    logger.info('Starting pipeline, planning to analyze %s files', len(options.infiles))
+    logger.info('Running on %s processes' %str(options.processes))
+    
 
     if not options.meta:
         parse_fasta_input(options, Results, logger)
@@ -181,7 +181,7 @@ def main():
         retrieved = 'possible genes'
     else:
         options.protein = False
-        parse_fastq_input(options,Results)
+        parse_fastq_input(options, Results, logger)
         Results.write_summary(True)
         numGenes = Results.retrievedContigs
         retrieved = 'retrieved contigs'
@@ -275,7 +275,7 @@ def check_arguments(options, logger):
             fastaFile = '%s/%s.fasta' %(path.abspath(options.fasta_dir), fastqBaseName)
             if not path.isfile(fastaFile):
                 msg = 'Neither nucleotide or amino sequences exists as FASTA.\n'\
-                        'Please provide path to amino or nucleotide sequences or remove flag --rerun'
+                      'Please provide path to amino or nucleotide sequences or remove flag --rerun'
                 logger.critical(msg)
                 logger.info('Exiting pipeline')
                 exit()
@@ -369,8 +369,7 @@ def parse_fastq_input(options, Results, logger):
     logger.info('Processing and searching input files. This may take a while...')
 
     try:
-        pooled_processing_fastq_with_logger = partial(pooled_processing_fastq, logger=logger)
-        bases_files = p.map(pooled_processing_fastq_with_logger, itertools.izip((options.infiles), itertools.repeat(options)))  
+        bases_files = p.map(pooled_processing_fastq, itertools.izip((options.infiles), itertools.repeat(options)))  
     except KeyboardInterrupt:
         logger.warning('\nCaught a KeyboardInterrupt. Terminating...')
         p.terminate()
@@ -411,7 +410,10 @@ def parse_fastq_input(options, Results, logger):
             Results.predictedOrfs = Results.count_contigs(retrievedOrfs)
         Results.retrievedContigs = Results.count_contigs(retrievedContigs)
 
-def pooled_processing_fastq(fastqfile_options, logger):
+def pooled_processing_fastq(fastqfile_options):
+    # Cannot send logger object to functions run in a multiprocessing Pool.
+    logger = logging.getLogger(__name__ + '.pooled_processing_fastq') 
+    print(logger.handlers)
     try:
         fastqfile, options = fastqfile_options[0], fastqfile_options[1]
         modelName = path.splitext(path.basename(options.hmm_model))[0]
@@ -442,10 +444,10 @@ def pooled_processing_fastq(fastqfile_options, logger):
         else:
             logger.info('Translating and searching')
             utils.translate_and_search(fastafile, options.hmm_model, hmmOut, options)
+
         logger.info('Start to classify')
         utils.classifier(hmmOut, hitFile, options)
-
-        logger.info('Translating,searching and classification done')
+        logger.info('Translating, searching, and classification done')
         
         fastqPath = path.dirname(path.abspath(fastqfile)) # Assuming the path is the same to every input fastqfile
         return fastqFilesBaseName, hitFile
