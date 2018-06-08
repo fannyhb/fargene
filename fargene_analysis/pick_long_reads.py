@@ -1,6 +1,7 @@
 import argparse
-from utils import read_fasta
 import glob
+
+from utils import read_fasta
 
 def main():
     parser = argparse.ArgumentParser()
