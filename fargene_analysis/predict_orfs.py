@@ -27,11 +27,12 @@ def parse_prodigal(prodigal_file,min_orf_length):
                 if info[-2:]=='00':
                     seq_id,start,end,strand = line[0],int(line[3]),int(line[4]),line[6]
                     length = int(end) - int(start)
-                    if not seq_id in orfs:
-                        orfs[seq_id] = [start,end,strand,length]
-                    else:
-                        if length > (orfs[seq_id])[3]:
+                    if length >= min_orf_length:
+                        if not seq_id in orfs:
                             orfs[seq_id] = [start,end,strand,length]
+                        else:
+                            if length > (orfs[seq_id])[3]:
+                                orfs[seq_id] = [start,end,strand,length]
     return orfs;
 
 def retrieve_orfs(orfs,fastaFile,orfFile):

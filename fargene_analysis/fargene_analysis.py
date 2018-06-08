@@ -160,7 +160,7 @@ def main():
     summaryFile = '%s/results_summary.txt' %(outdir)
     Results = ResultsSummary(summaryFile, len(options.infiles),options.hmm_model)
 
-    print 'Starting GENIE'
+    print 'Starting fARGene'
 
     if not options.meta:
         parse_fasta_input(options,Results)
@@ -175,7 +175,7 @@ def main():
         retrieved = 'retrieved contigs'
     logging.info('Done with pipeline')
     
-    msg = ('GENIE is done.\n'
+    msg = ('fARGene is done.\n'
             'Total number of {}: {}\n'
             'Total number of predicted ORFS longer than {} nt: {}\n'
             'Output can be found in {}'
@@ -307,8 +307,11 @@ def parse_fasta_input(options,Results):
             utils.retrieve_surroundings(hitDict,fastafile,elongated_fasta)
             if path.isfile(elongated_fasta):
                 if not options.orf_finder:
-                    predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
-                    utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
+                    tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
+                    predict_orfs_prodigal(elongated_fasta,options.tmp_dir,tmpORFfile,options.min_orf_length) 
+                    orfFile = utils.retrieve_predicted_orfs(options,tmpORFfile)
+#                    predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
+#                    utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
                     Results.count_orfs_genomes(orfFile)
                 else:
                     tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
