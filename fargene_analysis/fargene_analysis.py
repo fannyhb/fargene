@@ -3,6 +3,7 @@ from os import path, makedirs, getcwd
 from sys import argv
 from collections import defaultdict
 from multiprocessing import Pool, cpu_count
+from distutils.spawn import find_executable
 import argparse
 import logging
 import itertools
@@ -13,8 +14,6 @@ from HmmModel import HmmModel
 from predict_orfs import predict_orfs_orfFinder, predict_orfs_prodigal
 from ResultsSummary import ResultsSummary
 import utils
-#import signal
-#import time
 
 def parse_args(argv):
     desc = 'Searches and retrieves new and previously known genes from fragmented metagenomic data and genomes'
@@ -130,6 +129,8 @@ def parse_args(argv):
 def main():
     
     options, logger = parse_args(argv)
+    check_executables_in_path(options, logger)
+    
     if path.isdir(options.out_dir) and not options.force:
         msg = ('The directory {0} already exists. To overwrite use the'
                 ' --force flag').format(options.out_dir)
@@ -280,13 +281,31 @@ def check_arguments(options, logger):
                 logger.info('Exiting pipeline')
                 exit()
 
+def check_executables_in_path(options, logger):
+    executables = ['transeq','seqtk','hmmsearch']
+    if options.meta:
+        if not options.no_assembly:
+            executables.append('spades.py')
+        if not options.no_quality_filtering:
+            executables.append('trim_galore')
+        if options.orf_predict:
+            executables.append('ORFfinder')
+    else:
+        if options.orf_predict:
+            executables.append('prodigal')
+    for executable in executables:
+        if not find_executable(executable):
+            msg = ('Did not find {} in path.\n'
+                    'Exiting pipeline').format(executable)
+            logger.critical(msg)
+            exit()
 
 def parse_fasta_input(options, Results, logger):
     modelName = path.splitext(path.basename(options.hmm_model))[0]
     logger.info('Parsing FASTA files')
     frame = '6'
     for fastafile in options.infiles:
-        fastaBaseName = path.basename(fastafile).rpartition('.')[0]
+        fastaBaseName = path.splitext(path.basename(fastafile))[0]
         hmmOut = '%s/%s-%s-hmmsearched.out' %(path.abspath(options.hmm_out_dir), fastaBaseName,modelName)
         fastaOut = '%s/%s-%s-filtered.fasta' %(path.abspath(options.final_gene_dir), fastaBaseName,modelName)
         aminoOut = '%s/%s-%s-filtered-peptides.fasta' %(path.abspath(options.final_gene_dir), fastaBaseName,modelName)
@@ -307,13 +326,11 @@ def parse_fasta_input(options, Results, logger):
                 utils.perform_hmmsearch(peptideFile, options.hmm_model, hmmOut, options)
             else:
                 utils.translate_and_search(fastafile, options.hmm_model, hmmOut, options)
-#                utils.classifier(hmmOut,hitFile,options)
             utils.classifier(hmmOut,hitFile,options)
-#            Results.count_hits(hitFile)
             hitDict = utils.create_dictionary(hitFile, options)
             utils.retrieve_fasta(hitDict, fastafile, fastaOut, options)
             if not path.isfile(fastaOut):
-                logger.critial('Could not find file %s', fastaOut)
+                logger.critical('Could not find file %s', fastaOut)
                 exit()
             utils.retrieve_surroundings(hitDict, fastafile, elongated_fasta)
             if path.isfile(elongated_fasta):
@@ -321,15 +338,12 @@ def parse_fasta_input(options, Results, logger):
                     tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
                     predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length) 
                     orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
-#                    predict_orfs_prodigal(elongated_fasta,options.tmp_dir,orfFile,options.min_orf_length) 
-#                    utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile,frame='1')
                     Results.count_orfs_genomes(orfFile)
                 else:
                     tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, fastaBaseName)
                     predict_orfs_orfFinder(elongated_fasta,options.tmp_dir, tmpORFfile, options.min_orf_length)
                     orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
                     Results.predictedOrfs = Results.count_contigs(orfFile)
-#                Results.count_orfs_genomes(orfFile)
             if options.store_peptides:
                 options.retrieve_whole = False
                 utils.retrieve_peptides(hitDict, peptideFile, aminoOut, options)
@@ -383,6 +397,7 @@ def parse_fastq_input(options, Results, logger):
     transformer = Transformer()
     transformer.find_file_difference(options.infiles[0], options.infiles[1])
     transformer.find_header_endings(options.infiles[0], options.infiles[1])
+    transformer.verify_transform_is_working(options.infiles[0],options.infiles[1])
 
     logger.info('Retrieving hits from input files.')
     
@@ -409,7 +424,6 @@ def parse_fastq_input(options, Results, logger):
             utils.retrieve_surroundings(hits, retrievedContigs, elongatedFasta)
             predict_orfs_orfFinder(elongatedFasta, options.tmp_dir, orfFile, options.min_orf_length) 
             retrievedOrfs = utils.retrieve_predicted_orfs(options, orfFile)
-#            utils.retrieve_predicted_genes_as_amino(options,orfFile,orfAminoFile)
             Results.predictedOrfs = Results.count_contigs(retrievedOrfs)
         Results.retrievedContigs = Results.count_contigs(retrievedContigs)
 
@@ -462,5 +476,4 @@ class KeyboardInterruptError(Exception): pass
 
 
 if __name__ == '__main__':
-#    options = parse_args(argv)
     main()

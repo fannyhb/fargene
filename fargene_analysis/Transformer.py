@@ -8,7 +8,6 @@ class Transformer(object):
         self.fastqFileDiff2 = None
         self.headerEnd1 = ''
         self.headerEnd2 = ''
-        #self.endsuffix = endsuffix
         self.fastqFileDiffPos = None
 
     def find_file_difference(self,left_reads,right_reads):
@@ -67,6 +66,7 @@ class Transformer(object):
                     'I/O error({2}): {3}'.format(left_read,fullFastqFile,e.errno,e.strerror)
             print errorMsg
             exit()
+        self.find_header_endings(left_read,right_read)
         trans_header = header.split()[0]
         readID,_,indexedRead = trans_header.rpartition('/')
         if len(readID) == 0:

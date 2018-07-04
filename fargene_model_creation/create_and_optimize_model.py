@@ -43,10 +43,6 @@ def parse_args(argv):
     parser.add_argument('--only-fragments',dest='only_fragments',action='store_true',
                         help = 'Should be used if you only want to optimize the threshold score for \n'\
                                 'full fragmented genes.')
-#    parser.add_argument('--fragment-input',dest='create_fragments',action='store_false',
-#                        help = 'If you already have fragments you want to test the specificity on.\n'\
-#                                'The location of the file containing the fragments should then be '\
-#                                'specified using the --negative-sequences argument')
 
     parser.set_defaults(modelname = 'new_model',
             output_dir = './model_validation',
@@ -126,5 +122,4 @@ def create_hmm(args,est_obj):
 
 
 if __name__ == '__main__':
-#    options = parse_args()
     main()

@@ -56,7 +56,6 @@ def predict_orfs_prodigal(infile,outdir,orfFile,minLength):
     basename = path.basename(infile).rpartition('.')[0]
     outdir = path.abspath(outdir)
     prodigalOut = '%s/%s-predicted-orfs.gff' %(outdir,basename)
-    #orfFile = '%s/%s-predicted-orfs.fasta' %(outdir,basename)
     run_prodigal(infile,prodigalOut)
     orfs = parse_prodigal(prodigalOut,minLength)
     retrieve_orfs(orfs,infile,orfFile)
@@ -65,9 +64,7 @@ def predict_orfs_orfFinder(infile,tmpdir,orfFile,minLength):
     basename = path.basename(infile).rpartition('.')[0]
     tmpdir = path.abspath(tmpdir)
     orfFinderOut = '%s/%s-predicted-orfs.fasta' %(tmpdir,basename)
-    #orfFile = '%s/%s-predicted-orfs.fasta' %(outdir,basename)
     run_ORFFinder(infile,orfFinderOut)
-#    orfs = parse_prodigal(prodigalOut,minLength)
     if path.isfile(orfFinderOut) and path.getsize(orfFinderOut) > 0:
         parse_orfs(orfFinderOut,orfFile,minLength)
 
@@ -76,7 +73,24 @@ def parse_orfs(orfFinderOut,orfFile,minLength):
     orfOut = open(orfFile,'w')
     for header, seq in read_fasta(orfFinderOut,False):
         if len(seq) > minLength:
+            seq = find_common_startcodon(seq,minLength)
             orfOut.write('>%s\n%s\n' %(header,seq))
+
+def find_common_startcodon(seq,minLength):
+    startCodons = ['ATG','GTG','TTG']
+    start = 0
+    codon_stop = 3
+    gotAstart = False
+    while not gotAstart:
+        if len(seq[start:]) < minLength:
+            gotAstart = True
+            start = 0
+        elif seq[start:codon_stop] in startCodons:
+            gotAstart = True
+        else:
+            start = start + 3
+            codon_stop = codon_stop + 3
+    return seq[start:]
 
 def run_ORFFinder(infile,orfFile):
     call_list = ''.join(['ORFfinder -in ',infile,
@@ -88,21 +102,3 @@ def run_ORFFinder(infile,orfFile):
         logging.error("OS error ({0}) : {1}\nCan't find ORFfinder in path".format(e.errno,e.strerror))
         print "Can't find ORFfinder in path"
 
-
-if __name__=='__main__':
-    paths = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b3/'
-    prod_file = paths + 'contigs_prodigal.gff'
-    #prod_file = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b1_b2/tmpdir/contigs_prodigal.gff'
-    min_orf = 200
-    fastaFile = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b3/retrievedContigs/retrieved-contigs.fasta'
-    #fastaFile = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b1_b2/retrievedContigs/retrieved-contigs.fasta'
-    #
-    #fastaFile = '/storage/fannyb/tmp-files/test_prodigal/test2/alistipes.fasta'
-    #fastaFile = '/storage/fannyb/tmp-files/test/trylongreads/teredinibacter_extended.fasta'
-    orfFile = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b3/retrievedContigs/orf_prodigal.fasta'
-    outdir = '/storage/fannyb/runs_for_other/nachiket_pathogen_pool/b3/tmpdir/'
-
-    predict_orfs_prodigal(fastaFile,outdir,orfFile,min_orf)
-#    run_prodigal(fastaFile,prod_file)
-#    orfs = parse_prodigal(prod_file,min_orf)
-#    retrieve_orfs(orfs,fastaFile,orfFile)

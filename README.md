@@ -121,18 +121,18 @@ It is also possible to change the scores for the predifened models, just add the
 Run `fargene --help` to get all the options of fargene.
 
 ```
-usage: fargene        [-h] --infiles INFILES [INFILES ...] --hmm-model
-                      HMM_MODEL [--score LONG_SCORE] [--meta]
-                      [--meta-score META_SCORE] [--output OUT_DIR] [--force]
-                      [--tmp-dir TMP_DIR] [--protein] [--processes PROCESSES]
-                      [--min-orf-length MIN_ORF_LENGTH] [--retrieve-whole]
-                      [--no-orf-predict] [--no-quality-filtering]
-                      [--no-assembly] [--store-peptides] [--rerun]
-                      [--amino-dir AMINO_DIR] [--fasta-dir FASTA_DIR]
-                      [--translation-format TRANS_FORMAT]
+usage: fargene [-h] --infiles INFILES [INFILES ...] --hmm-model HMM_MODEL
+               [--score LONG_SCORE] [--meta] [--meta-score META_SCORE]
+               [--output OUTDIR] [--force] [--tmp-dir TMP_DIR] [--protein]
+               [--processes PROCESSES] [--min-orf-length MIN_ORF_LENGTH]
+               [--retrieve-whole] [--no-orf-predict] [--no-quality-filtering]
+               [--no-assembly] [--orf-finder] [--store-peptides] [--rerun]
+               [--amino-dir AMINO_DIR] [--fasta-dir FASTA_DIR]
+               [--translation-format TRANS_FORMAT] [--loglevel {DEBUG,INFO}]
+               [--logfile LOGFILE]
 
 Searches and retrieves new and previously known genes from fragmented
-metagenomic data and genomes
+metagenomic data and genomes. Copyright (c) Fanny Berglund 2018.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -145,41 +145,47 @@ optional arguments:
                         models or the path to a custom HMM.
   --score LONG_SCORE, -sl LONG_SCORE
                         The threshold score for a sequence to be classified as
-                        a (almost) complete gene.
-  --meta                If the input data is paired end metagenomic data.
+                        a (almost) complete gene (default: None).
+  --meta                If the input data is paired end metagenomic data
+                        (default: False).
   --meta-score META_SCORE, -sm META_SCORE
                         The threshold score for a fragment to be classified as
-                        a positive. Expressed as score per amino acid.
-  --output OUT_DIR, -o OUT_DIR
-                        The output directory for the whole run.
-  --force, -f           If the output directory exists and you want to
-                        overwrite it.
+                        a positive. Expressed as score per amino acid
+                        (default: None).
+  --output OUTDIR, -o OUTDIR
+                        The output directory for the whole run (default:
+                        ./fargene_output).
+  --force, -f           Overwrite output directory if it exists (default:
+                        False).
   --tmp-dir TMP_DIR     Directory for (sometimes large) intermediate files.
                         (default: OUT_DIR/tmpdir)
-  --protein             If the input sequence(s) is amino acids.
+  --protein             If the input sequence(s) is amino acids (default:
+                        False).
   --processes PROCESSES, -p PROCESSES
                         Number of processes to be used when processing
-                        metagenomic data.
+                        metagenomic data (default: 1).
   --min-orf-length MIN_ORF_LENGTH
                         The minimal length for a retrieved predicted ORF (nt).
                         (default: 90% of the length of the chosen hmm.)
   --retrieve-whole      Use this flag if the whole sequence where a hit is
-                        detected should be retrieved.
-  --no-orf-predict      No ORF prediction should be performed.
+                        detected should be retrieved (default: False).
+  --no-orf-predict      Do not perform ORF prediction.
   --no-quality-filtering
                         Use if no quality control should be performed on the
-                        metagenomic data.
+                        metagenomic data (default: False).
   --no-assembly         Use if you want to skip the assembly and retrieval of
-                        contigs for metagenomic data.
+                        contigs for metagenomic data (default: False).
+  --orf-finder          Use NCBI ORFfinder instead of prodigal for ORF
+                        prediction of genomes/contigs (default: False).
   --store-peptides, -sp
-                        If the translated sequences should be stored. Useful
-                        if you plan to redo the analysis using a different
-                        model and want to skip the preprocessing steps.
+                        Store the translated sequences. Useful if you plan to
+                        redo the analysis using a different model and want to
+                        skip the preprocessing steps (default: False).
   --rerun               Use of you want to redo the analysis or do the
                         analysis using a different model and have kept either
                         the nucletide or amino acid sequences. Please note
                         that this only works if the input data is the same for
-                        both runs
+                        both runs (default: False).
   --amino-dir AMINO_DIR
                         Where the amino acid sequences generated by the method
                         are located. Only to be used in combination with
@@ -191,6 +197,9 @@ optional arguments:
   --translation-format TRANS_FORMAT
                         The translation format that transeq should use.
                         (default: pearson)
+  --loglevel {DEBUG,INFO}
+                        Set logging level (default: INFO).
+  --logfile LOGFILE     Logfile (default: fargene_analysis.log).
 ```
 
 ### Output

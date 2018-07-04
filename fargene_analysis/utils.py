@@ -270,13 +270,13 @@ def retrieve_assembled_genes(options):
         return (fastaOut,hitDict)
     else:
         logging.error('The file %s does not exist' %(contigFile))
+        return ('', None)
 
 def retrieve_predicted_orfs(options,orfFile):
     options.meta = False
     options.retrieve_whole = True
     frame ='1'
     modelName = splitext(basename(options.hmm_model))[0]
-    #contigFile = '%s/contigs.fasta' %(abspath(options.assembly_dir))
     aminoFile = '%s/orfs-translated.fasta' %(abspath(options.tmp_dir))
     fastaOut = '%s/predicted-orfs.fasta' %(abspath(options.final_gene_dir))
     aminoOut = '%s/predicted-orfs-amino.fasta' %(abspath(options.final_gene_dir))
@@ -285,8 +285,6 @@ def retrieve_predicted_orfs(options,orfFile):
     if isfile(orfFile):
         translate_sequence(orfFile,aminoFile,options,frame)
         perform_hmmsearch(aminoFile,options.hmm_model,hmmOut,options)
-#        classifier(hmmOut,hitFile,options)
-#        hitDict = create_dictionary(hitFile,options)
         hitDict = orf_classifier(hmmOut,hitFile,options)
 
         retrieve_peptides(hitDict,aminoFile,aminoOut,options)
@@ -361,7 +359,6 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
         s_id = s_id.lstrip(addition)
         if hitDict.has_key(s_id):
             for i in range(0,len(hitDict[s_id])):
-#                header = '>' + fastaBaseName + '_' + s_id + '_seq' + str(i+1)
                 header = '>' + s_id + '_seq' + str(i+1)
                 info = hitDict[s_id][i]
                 ali_start, ali_end = int(info[1]),int(info[2])
