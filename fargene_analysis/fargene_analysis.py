@@ -206,7 +206,10 @@ def check_arguments(options, logger):
             HmmModel("class_c", model_location + "/class_C.hmm", 248, float(0.30303)),
             HmmModel("class_d_1", model_location + "/class_D_1.hmm", 182, float(0.3030)),
             HmmModel("class_d_2", model_location + "/class_D_2.hmm", 234, float(0.3030)),
-            HmmModel("qnr", model_location + "/qnr.hmm", 150, float(0.51515))
+            HmmModel("qnr", model_location + "/qnr.hmm", 150, float(0.51515)),
+            HmmModel("tet_efflux", model_location + "/tet_efflux.hmm", 214, float(0.3030)),
+            HmmModel("tet_rpg", model_location + "/tet_rpg.hmm", 471, float(0.4545)),
+            HmmModel("tet_enzyme", model_location + "/tet_enzyme.hmm", 300, float(0.4545))
             ]
 
     for model in preDefinedModels:
@@ -331,25 +334,26 @@ def parse_fasta_input(options, Results, logger):
             utils.retrieve_fasta(hitDict, fastafile, fastaOut, options)
             if not path.isfile(fastaOut):
                 logger.critical('Could not find file %s', fastaOut)
-                exit()
-            utils.retrieve_surroundings(hitDict, fastafile, elongated_fasta)
-            if path.isfile(elongated_fasta):
-                if not options.orf_finder:
-                    tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
-                    predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length) 
-                    orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
-                    Results.count_orfs_genomes(orfFile)
-                else:
-                    tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, fastaBaseName)
-                    predict_orfs_orfFinder(elongated_fasta,options.tmp_dir, tmpORFfile, options.min_orf_length)
-                    orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
-                    Results.predictedOrfs = Results.count_contigs(orfFile)
-            if options.store_peptides:
-                options.retrieve_whole = False
-                utils.retrieve_peptides(hitDict, peptideFile, aminoOut, options)
+#                exit()
             else:
-                tmpFastaOut = utils.make_fasta_unique(fastaOut, options)
-                utils.retrieve_predicted_genes_as_amino(options, tmpFastaOut, aminoOut, frame='6')
+                utils.retrieve_surroundings(hitDict, fastafile, elongated_fasta)
+                if path.isfile(elongated_fasta):
+                    if not options.orf_finder:
+                        tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
+                        predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length) 
+                        orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
+                        Results.count_orfs_genomes(orfFile)
+                    else:
+                        tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, fastaBaseName)
+                        predict_orfs_orfFinder(elongated_fasta,options.tmp_dir, tmpORFfile, options.min_orf_length)
+                        orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
+                        Results.predictedOrfs = Results.count_contigs(orfFile)
+                if options.store_peptides:
+                    options.retrieve_whole = False
+                    utils.retrieve_peptides(hitDict, peptideFile, aminoOut, options)
+                else:
+                    tmpFastaOut = utils.make_fasta_unique(fastaOut, options)
+                    utils.retrieve_predicted_genes_as_amino(options, tmpFastaOut, aminoOut, frame='6')
         Results.count_hits(hitFile)
     return orfFile
 
@@ -379,7 +383,11 @@ def parse_fastq_input(options, Results, logger):
         for fastqfile in options.infiles:
             fastqBaseName = path.splitext(path.basename(fastqfile))[0]
             fastafile = '%s/%s.fasta' %(path.abspath(options.tmp_dir), fastqBaseName)
-            utils.convert_fastq_to_fasta(fastqfile, fastafile)
+            if not path.isfile(fastafile):
+                utils.convert_fastq_to_fasta(fastqfile, fastafile)
+            elif path.getsize(fastafile) == 0:
+                utils.convert_fastq_to_fasta(fastqfile, fastafile)
+
    
     p = Pool(options.processes)
     
