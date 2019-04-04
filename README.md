@@ -1,6 +1,6 @@
 # fARGene
 
-fARGene (Fragmented Antibiotic Resistance Gene iENntifiEr ) is a tool that takes either fragmented metgenomic data or longer sequences as input and predict and delivers full-length antiobiotic resistance genes as output. The tool includes developed and optimized models for a number or resistance gene types,
+fARGene (Fragmented Antibiotic Resistance Gene iENntifiEr ) is a tool that takes either fragmented metagenomic data or longer sequences as input and predicts and delivers full-length antiobiotic resistance genes as output. The tool includes developed and optimized models for a number or resistance gene types,
 and the functionality to create and optimize models of your own choice of resistance genes.
 
 The current version of the tool includes developed and optimized models for identification of the following resistance genes
