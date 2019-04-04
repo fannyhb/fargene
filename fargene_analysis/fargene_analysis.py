@@ -207,7 +207,7 @@ def check_arguments(options, logger):
             HmmModel("class_d_1", model_location + "/class_D_1.hmm", 182, float(0.3030)),
             HmmModel("class_d_2", model_location + "/class_D_2.hmm", 234, float(0.3030)),
             HmmModel("qnr", model_location + "/qnr.hmm", 150, float(0.51515)),
-            HmmModel("tet_efflux", model_location + "/tet_efflux.hmm", 214, float(0.3030)),
+            HmmModel("tet_efflux", model_location + "/tet_efflux.hmm", 400, float(0.3030)),
             HmmModel("tet_rpg", model_location + "/tet_rpg.hmm", 471, float(0.4545)),
             HmmModel("tet_enzyme", model_location + "/tet_enzyme.hmm", 300, float(0.4545))
             ]
