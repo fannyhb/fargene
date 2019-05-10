@@ -196,7 +196,7 @@ def retrieve_fasta(hitDict,fastaInfile,fastaOutfile,options):
         print '\n%s\n' %msg
         logging.error(msg)
         return
-    outfile = open(fastaOutfile,'w')
+    outfile = open(fastaOutfile,'a')
     for header, seq in read_fasta(fastaInfile,False):
         written = False
         s_id = header.split()[0]
@@ -217,7 +217,7 @@ def retrieve_peptides(hitDict,aminoInFile,aminoOut,options):
     fastaBaseName = splitext(basename(aminoInFile))[0]
     if not hitDict:
         return
-    outfile = open(aminoOut,'w')
+    outfile = open(aminoOut,'a')
     for header, seq in read_fasta(aminoInFile,False):
         written = False
         s_id,sep,frame = (header.split()[0]).rpartition('_')
@@ -364,7 +364,7 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
                 ali_start, ali_end = int(info[1]),int(info[2])
                 ali_start, ali_end = translate_position(info[1],info[2],info[3],info[0],nlen)
                 ali_start, ali_end = include_surroundings(ali_start,ali_end,nlen,extension)    
-                outfile.write('%s\n%s\n' %(header,seq[ali_start:ali_end]))
+                outfile.write('%s\n%s\n' %(header,seq[ali_start:ali_end+1]))
 
 def is_fasta(infile):
     with open(infile,'r') as f:
@@ -383,7 +383,7 @@ def is_fastq(infile):
 def remove_tmp_file(fileToRemove):
     msg = "rm " + fileToRemove               
     logging.info("Removing file " + fileToRemove)
-    subprocess.call(msg, shell=True)     
+    sp.call(msg, shell=True)     
 
 def create_dir(directory):
     errorMsg = 'OS error ({0}): {1}\nCould not create directory {2}.\nExiting pipeline'
@@ -476,3 +476,19 @@ def include_surroundings(ali_start, ali_end, nlen, extension):
         end = min(ali_start + extension,nlen)
         start = max(ali_end-extension,1)
     return (start-1,end-1)
+
+def remove_files(targetDir, resDir):
+    files = glob.glob(targetDir + '/*') + \
+    glob.glob(resDir + '/*.fastq') + \
+    glob.glob(resDir + '/trimmedReads/*.fq')
+    if len(files) == 0:
+        return True
+    print "\nThe following files will be DELETED!!\n\n {}\n".format(
+            '\n'.join(files))
+    ans = str(raw_input("type [y]es to continue or [n]o to abort:"))
+    if ans.lower() == 'y' or ans.lower() == 'yes':
+        for fileToRemove in files:
+            remove_tmp_file(fileToRemove)
+        return True
+    else:
+        return False

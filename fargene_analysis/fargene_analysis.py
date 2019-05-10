@@ -130,6 +130,14 @@ def main():
     
     options, logger = parse_args(argv)
     check_executables_in_path(options, logger)
+
+    outdir = path.abspath(options.out_dir)
+    options.hmm_out_dir = '%s/hmmsearchresults' %(outdir)
+    options.res_dir = '%s/retrievedFragments' %(outdir)
+    options.final_gene_dir = '%s/predictedGenes' %(outdir)
+    options.assembly_dir = '%s/spades_assembly' %(outdir)
+    if not options.tmp_dir:
+        options.tmp_dir = '%s/tmpdir' %(outdir)
     
     if path.isdir(options.out_dir) and not options.force:
         msg = ('The directory {0} already exists. To overwrite use the'
@@ -137,9 +145,13 @@ def main():
         logger.error(msg)
         logger.info('Exiting pipeline')
         exit()
+    elif path.isdir(options.out_dir) and options.force:
+        if not utils.remove_files(options.final_gene_dir, options.res_dir):
+            logger.info('Exiting pipeline')
+            exit()
     else:
         utils.create_dir(options.out_dir)
-    outdir = path.abspath(options.out_dir)
+#    outdir = path.abspath(options.out_dir)
 
     for infile in options.infiles:
         if not path.isfile(infile):
@@ -148,12 +160,12 @@ def main():
             logger.info('Exiting pipeline')
             exit()
 
-    options.hmm_out_dir = '%s/hmmsearchresults' %(outdir)
-    options.res_dir = '%s/retrievedFragments' %(outdir)
-    if not options.tmp_dir:
-        options.tmp_dir = '%s/tmpdir' %(outdir)
-    options.final_gene_dir = '%s/predictedGenes' %(outdir)
-    options.assembly_dir = '%s/spades_assembly' %(outdir)
+#    options.hmm_out_dir = '%s/hmmsearchresults' %(outdir)
+#    options.res_dir = '%s/retrievedFragments' %(outdir)
+#    if not options.tmp_dir:
+#        options.tmp_dir = '%s/tmpdir' %(outdir)
+#    options.final_gene_dir = '%s/predictedGenes' %(outdir)
+#    options.assembly_dir = '%s/spades_assembly' %(outdir)
 
     check_arguments(options, logger)
 
@@ -342,12 +354,10 @@ def parse_fasta_input(options, Results, logger):
                         tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
                         predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length) 
                         orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
-                        Results.count_orfs_genomes(orfFile)
                     else:
                         tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, fastaBaseName)
                         predict_orfs_orfFinder(elongated_fasta,options.tmp_dir, tmpORFfile, options.min_orf_length)
                         orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
-                        Results.predictedOrfs = Results.count_contigs(orfFile)
                 if options.store_peptides:
                     options.retrieve_whole = False
                     utils.retrieve_peptides(hitDict, peptideFile, aminoOut, options)
@@ -355,6 +365,12 @@ def parse_fasta_input(options, Results, logger):
                     tmpFastaOut = utils.make_fasta_unique(fastaOut, options)
                     utils.retrieve_predicted_genes_as_amino(options, tmpFastaOut, aminoOut, frame='6')
         Results.count_hits(hitFile)
+    if path.isfile(orfFile):                                      
+        if not options.orf_finder:                                
+            Results.count_orfs_genomes(orfFile)                   
+        else:                                                     
+            Results.predictedOrfs = Results.count_contigs(orfFile)
+                                                              
     return orfFile
 
 

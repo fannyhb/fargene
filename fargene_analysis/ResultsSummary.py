@@ -67,19 +67,3 @@ class ResultsSummary(object):
                         'Number of predicted ORFs:\t%s'\
                         %(str(self.retrievedSequences),str(self.predictedOrfs)))
 
-if __name__ == '__main__':
-    infiles = ['/storage/fannyb/tmp-files/test/trylongreads/zobellia_wholegenome.fasta']
-    hitDir = '/storage/fannyb/tmp-files/test/trylongreads/test/tmpdir'
-    contigFile = '/storage/fannyb/tmp-files/test/oilspill/retrievedContigs/retrieved-contigs.fasta'
-    orfFile = '/storage/fannyb/tmp-files/test/oilspill/retrievedContigs/retrieved-contigs-predicted-orfs.fasta'
-    orgContigFile = '/storage/fannyb/tmp-files/test/oilspill/spades_assembly/contigs.fasta'
-    outdir = '/storage/fannyb/tmp-files/test/oilspill'
-    Results = ResultsSummary('txt',20,'B1.hmm')
-    Results.count_hits(infiles,hitDir)
-    Results.contigs = Results.count_contigs(orgContigFile)
-    Results.retrievedContigs = Results.count_contigs(contigFile)
-    Results.predictedOrfs = Results.count_contigs(orfFile)
-    print Results.contigs
-    print Results.retrievedContigs
-    print Results.predictedOrfs
-    Results.write_summary(outdir,False)
