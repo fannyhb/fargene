@@ -151,7 +151,6 @@ def main():
             exit()
     else:
         utils.create_dir(options.out_dir)
-#    outdir = path.abspath(options.out_dir)
 
     for infile in options.infiles:
         if not path.isfile(infile):
@@ -160,12 +159,6 @@ def main():
             logger.info('Exiting pipeline')
             exit()
 
-#    options.hmm_out_dir = '%s/hmmsearchresults' %(outdir)
-#    options.res_dir = '%s/retrievedFragments' %(outdir)
-#    if not options.tmp_dir:
-#        options.tmp_dir = '%s/tmpdir' %(outdir)
-#    options.final_gene_dir = '%s/predictedGenes' %(outdir)
-#    options.assembly_dir = '%s/spades_assembly' %(outdir)
 
     check_arguments(options, logger)
 

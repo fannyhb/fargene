@@ -282,7 +282,7 @@ def retrieve_predicted_orfs(options,orfFile):
     aminoOut = '%s/predicted-orfs-amino.fasta' %(abspath(options.final_gene_dir))
     hmmOut = '%s/orfs-%s-hmmsearched.out' %(abspath(options.hmm_out_dir),modelName)
     hitFile = '%s/orfs-positives.out' %(abspath(options.tmp_dir))
-    if isfile(orfFile):
+    if isfile(orfFile) and getsize(orfFile) > 0:
         translate_sequence(orfFile,aminoFile,options,frame)
         perform_hmmsearch(aminoFile,options.hmm_model,hmmOut,options)
         hitDict = orf_classifier(hmmOut,hitFile,options)
@@ -292,6 +292,7 @@ def retrieve_predicted_orfs(options,orfFile):
         return fastaOut
     else:
         logging.error('The file %s does not exist' %(orfFile))
+        return fastaOut
 
 def orf_classifier(hmmOut,hitFile,options):
     threshold = "$14>%s" %(options.long_score)
