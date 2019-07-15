@@ -57,7 +57,7 @@ For the model creation package you additionally need the following packages:
 
 ### Installing
 
-
+#### Installing from source
 ```
 git clone https://github.com/fannyhb/fargene.git
 cd fargene
@@ -70,6 +70,12 @@ setup.py will look for and try to install numpy and matplotlib so make sure that
 - have these packages installed
 - run setup.py as root or with sudo
 - install the program in a [conda](https://conda.io/docs/user-guide/install/download.html) environment. 
+
+#### Installing from conda
+
+```
+conda install -c conda-forge -c bioconda fargene
+```
 
 ## Data analysis
 
