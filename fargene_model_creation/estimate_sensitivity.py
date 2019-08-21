@@ -56,12 +56,7 @@ def main():
     parser.add_argument('--modelname',dest = 'modelname')
     parser.add_argument('--lengths',dest='fragment_lengths')
     parser.add_argument('--num-fragments',dest='num_fragments')
-    
-    #NUM_FRAGMENTS = 10000
-    #fragment_length_list = range(33,43,10)
-    #FRAGMENT_LENGTH = 33
     full_seq = False
-    
     parser.set_defaults(fragment_lengths = [33],
             num_fragments = 10000)
     args = parser.parse_args()
@@ -83,14 +78,11 @@ def create_subsets(fastafile,subsetpath,num_fragments, fragment_length,full_seq)
         headername = header.split()[0]
         headername = '_'.join(headername.split('|'))
         headername = ((headername.replace(',','_')).replace('[','_')).replace(']','_')
-        headername = headername.replace('=','_')
+        headername = (headername.replace('=','_')).replace('"','_')
         if headername in header_list:
             headername = headername + '_' + str(unique_count)
             unique_count = unique_count + 1
         header_list.append(headername)
-        #headername = '_'.join(header.split('|')[0:2])
-        #headername = '_'.join(headername.split())
-        #headername = ((headername.replace(',','_')).replace('[','_')).replace(']','_')
         fragmentfile = open(subsetpath + "fragments-" + headername + ".fasta",'w')
         if not full_seq: 
             fragments = create_fragments(seq, num_fragments, fragment_length)
@@ -255,11 +247,4 @@ def read_fasta(filename, keep_formatting=True):
             line = fasta.readline() 
 
 if __name__=='__main__':
-    #sequence =  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-    #sequence = "abcdefghijklmnopqrstuvxyz"
-    #create_fragments(sequence, 10, 8)
-    #alignfile = "/storage/fannyb/tmp-files/modelvalidation/b3test-aligned.fasta"
-    #fastafile = "/storage/fannyb/tmp-files/modelvalidation/subclassB3_oneFamily_v2.fasta"
-    #hmmfile = "/storage/fannyb/tmp-files/modelvalidation/b3-test.hmm"
-    #create_model(fastafile, alignfile, hmmfile)
     main()
