@@ -12,6 +12,10 @@ The current version of the tool includes developed and optimized models for iden
  - Class D beta-lactamases
  - *qnr*
  
+ Read more about fARGene here:
+ 
+ [Berglund, F., Österlund, T., Boulund, F., Marathe, N. P., Larsson, D. J., & Kristiansson, E. (2019). Identification and reconstruction  of novel antibiotic resistance genes from metagenomes. *Microbiome*, 7(1), 52.](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-019-0670-1)
+ 
 ## Table of  contents
 
 * [Getting Started](#getting-started)
