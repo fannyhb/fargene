@@ -11,6 +11,7 @@ The current version of the tool includes developed and optimized models for iden
  - Class C beta-lactamases
  - Class D beta-lactamases
  - *qnr*
+ - Tetracycline resistance genes
  
  Read more about fARGene here:
  
@@ -114,6 +115,10 @@ Where `hmm-model` can be any of the pre-defined models:
    - `--hmm-model class_d_1`
    - `--hmm-model class_d_2`
  - *qnr* `--hmm-model qnr`
+ - Tetracycline resistance genes
+   - `--hmm-model tet_efflux`
+   - `--hmm-model tet_rpg`
+   - `--hmm-model tet_enzyme`
    
 If you choose to use your own profile hidden Markov model you need to specify the score as follows:
 
