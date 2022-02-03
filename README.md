@@ -44,7 +44,7 @@ These instructions will get you a copy of the most up-to-date version of fARGene
 - Python 2.x
 - [EMBOSS transeq](http://emboss.sourceforge.net/download/)
 - [seqtk](https://github.com/lh3/seqtk)
-- [HMMER](http://hmmer.org/)
+- [HMMER](http://hmmer.org/) 3.2 or older
 - For short-read data:
   - [SPAdes](http://cab.spbu.ru/software/spades/) 3.7.0 or later
   - [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) (optional)
