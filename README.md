@@ -12,6 +12,10 @@ The current version of the tool includes developed and optimized models for iden
  - Class D beta-lactamases
  - *qnr*
  - Tetracycline resistance genes
+ - Erm 23S rRNA methyltransferases
+ - Mph macrolide 2'-phosphotransferases
+ - AAC aminoglycoside acetyltransferases
+ - APH aminoglycoside phosphotransferases
  
  Read more about fARGene here:
  
@@ -87,7 +91,6 @@ conda install -c conda-forge -c bioconda fargene
 ### Easy usage
 
 **Fragmented metagenomic input**
-
 ```
 fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_a -o output_dir -p num_of_processes
 ```
@@ -119,6 +122,21 @@ Where `hmm-model` can be any of the pre-defined models:
    - `--hmm-model tet_efflux`
    - `--hmm-model tet_rpg`
    - `--hmm-model tet_enzyme`
+ - Erm 23S rRNA methyltransferases
+   - `--hmm-model erm_type_a`
+   - `--hmm-model erm_type_f`
+ - Mph macrolide 2'-phosphotransferases `--hmm-model mph`
+ - AAC aminoglycoside acetyltransferases
+   - `--hmm-model model_a` (represents *aac(2')*-type genes)
+   - `--hmm-model model_b` (represents *aac(3)*-type genes)
+   - `--hmm-model model_c` (represents *aac(3)*-type genes)
+   - `--hmm-model model_d` (represents *aac(6')*-type genes)
+   - `--hmm_model model_e` (represents *aac(6')*-type genes)
+   - `--hmm-model model_f` (represents *aac(6')*-type genes)
+ - APH aminoglycoside phosphotransferases
+   - `--hmm-model model_g` (represents *aph(2'')*-type genes)
+   - `--hmm-model model_h` (represents *aph(3')*/*aph(3'')*-type genes)
+   - `--hmm-model model_i` (represents *aph(6)*/*aph(3')*-type genes)
    
 If you choose to use your own profile hidden Markov model you need to specify the score as follows:
 
