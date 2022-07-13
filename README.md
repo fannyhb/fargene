@@ -127,16 +127,16 @@ Where `hmm-model` can be any of the pre-defined models:
    - `--hmm-model erm_type_f`
  - Mph macrolide 2'-phosphotransferases `--hmm-model mph`
  - AAC aminoglycoside acetyltransferases
-   - `--hmm-model model_a` (represents *aac(2')*-type genes)
-   - `--hmm-model model_b` (represents *aac(3)*-type genes)
-   - `--hmm-model model_c` (represents *aac(3)*-type genes)
-   - `--hmm-model model_d` (represents *aac(6')*-type genes)
-   - `--hmm_model model_e` (represents *aac(6')*-type genes)
-   - `--hmm-model model_f` (represents *aac(6')*-type genes)
+   - `--hmm-model aminoglycoside_model_a` (represents *aac(2')*-type genes)
+   - `--hmm-model aminoglycoside_model_b` (represents *aac(3)*-type genes)
+   - `--hmm-model aminoglycoside_model_c` (represents *aac(3)*-type genes)
+   - `--hmm-model aminoglycoside_model_d` (represents *aac(6')*-type genes)
+   - `--hmm_model aminoglycoside_model_e` (represents *aac(6')*-type genes)
+   - `--hmm-model aminoglycoside_model_f` (represents *aac(6')*-type genes)
  - APH aminoglycoside phosphotransferases
-   - `--hmm-model model_g` (represents *aph(2'')*-type genes)
-   - `--hmm-model model_h` (represents *aph(3')*/*aph(3'')*-type genes)
-   - `--hmm-model model_i` (represents *aph(6)*/*aph(3')*-type genes)
+   - `--hmm-model aminoglycoside_model_g` (represents *aph(2'')*-type genes)
+   - `--hmm-model aminoglycoside_model_h` (represents *aph(3')*/*aph(3'')*-type genes)
+   - `--hmm-model aminoglycoside_model_i` (represents *aph(6)*/*aph(3')*-type genes)
    
 If you choose to use your own profile hidden Markov model you need to specify the score as follows:
 
