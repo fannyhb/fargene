@@ -214,7 +214,19 @@ def check_arguments(options, logger):
             HmmModel("qnr", model_location + "/qnr.hmm", 150, float(0.51515)),
             HmmModel("tet_efflux", model_location + "/tet_efflux.hmm", 400, float(0.3030)),
             HmmModel("tet_rpg", model_location + "/tet_rpg.hmm", 471, float(0.4545)),
-            HmmModel("tet_enzyme", model_location + "/tet_enzyme.hmm", 300, float(0.4545))
+            HmmModel("tet_enzyme", model_location + "/tet_enzyme.hmm", 300, float(0.4545)),
+            HmmModel("erm_type_a", model_location + "/erm_typeA.hmm", 200, float(0.4545)),
+            HmmModel("erm_type_f", model_location + "/erm_typeF.hmm", 175, float(0.4242)),
+            HmmModel("mph", model_location + "/mph.hmm", 100, float(0.3030)),
+            HmmModel("aminoglycoside_model_a", model_location + "/aminoglycoside_model_a.hmm", 100, float(0.2727)),
+            HmmModel("aminoglycoside_model_b", model_location + "/aminoglycoside_model_b.hmm", 100, float(0.5152)),
+            HmmModel("aminoglycoside_model_c", model_location + "/aminoglycoside_model_c.hmm", 100, float(0.2424)),
+            HmmModel("aminoglycoside_model_d", model_location + "/aminoglycoside_model_d.hmm", 100, float(0.3333)),
+            HmmModel("aminoglycoside_model_e", model_location + "/aminoglycoside_model_e.hmm", 100, float(0.3333)),
+            HmmModel("aminoglycoside_model_f", model_location + "/aminoglycoside_model_f.hmm", 100, float(0.3636)),
+            HmmModel("aminoglycoside_model_g", model_location + "/aminoglycoside_model_g.hmm", 100, float(0.3030)),
+            HmmModel("aminoglycoside_model_h", model_location + "/aminoglycoside_model_h.hmm", 100, float(0.1818)),
+            HmmModel("aminoglycoside_model_i", model_location + "/aminoglycoside_model_i.hmm", 100, float(0.2121))
             ]
 
     for model in preDefinedModels:
