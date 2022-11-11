@@ -84,7 +84,7 @@ def add_hits_to_fastq_dictionary(hitFile,fastqDict,fastqInfile,options,transform
                 readID = readID_tmp
                 if not options.protein:
                     readID,sep,frame = readID.rpartition('_')
-            if not fastqBaseName in fastqDict.keys() or not readID in fastqDict[fastqBaseName]:
+            if not fastqBaseName in list(fastqDict.keys()) or not readID in fastqDict[fastqBaseName]:
                 fastqDict[fastqBaseName].append(readID)
     return fastqDict
         
@@ -118,7 +118,7 @@ def retrieve_paired_end_fastq(fastqDict,fastqPath,options,transformer):
     tmpfile = abspath(options.tmp_dir) + '/listOfIds'
     name,_,endsuffix = basename(options.infiles[0]).rpartition('.')
     endsuffix = '.%s' %(endsuffix)
-    for key, item in fastqDict.iteritems():
+    for key, item in fastqDict.items():
         nameOfIdFile = create_file_with_ids(tmpfile, item,transformer)
         if not transformer:
             fastqBase = abspath(fastqPath) + '/' + key
@@ -140,7 +140,7 @@ def quality(fastqBases,options):
     if options.processes > cpu_count():
         options.processes = cpu_count()
     p = Pool(options.processes)
-    bases_files = p.map(quality_control_and_adapter_removal, itertools.izip((fastqBases),itertools.repeat(options)))
+    bases_files = p.map(quality_control_and_adapter_removal, zip((fastqBases),itertools.repeat(options)))
 
 def quality_control_and_adapter_removal(fastqBase_options):
     fastqBase, options = fastqBase_options[0],fastqBase_options[1]
@@ -171,7 +171,7 @@ def run_spades(options):
         sp.call(spades_msg,shell=True)
     else:
         msg = 'No retrieved data to assemble'
-        print '\n%s\n' %msg
+        print('\n%s\n' %msg)
         logging.error(msg)
 
 def create_dictionary(hitFile,options):
@@ -183,7 +183,7 @@ def create_dictionary(hitFile,options):
                 name,sep,frame = name.rpartition('_')
             else:
                 frame = '-'
-            if name in hitDict.keys():
+            if name in list(hitDict.keys()):
                 hitDict[name].append((length,start,end,frame))
             else:
                 hitDict[name] = [(length,start,end,frame)]
@@ -193,14 +193,14 @@ def retrieve_fasta(hitDict,fastaInfile,fastaOutfile,options):
     fastaBaseName = splitext(basename(fastaInfile))[0]
     if not hitDict:
         msg = 'No hits in file %s' %(abspath(fastaInfile))
-        print '\n%s\n' %msg
+        print('\n%s\n' %msg)
         logging.error(msg)
         return
     outfile = open(fastaOutfile,'a')
     for header, seq in read_fasta(fastaInfile,False):
         written = False
         s_id = header.split()[0]
-        if hitDict.has_key(s_id):
+        if s_id in hitDict:
             header = '>' + fastaBaseName + '_' + header
             for i in range(0,len(hitDict[s_id])):
                 info = hitDict[s_id][i]
@@ -221,7 +221,7 @@ def retrieve_peptides(hitDict,aminoInFile,aminoOut,options):
     for header, seq in read_fasta(aminoInFile,False):
         written = False
         s_id,sep,frame = (header.split()[0]).rpartition('_')
-        if hitDict.has_key(s_id):
+        if s_id in hitDict:
             header = '>' + fastaBaseName + '_' + header
             for i in range(0,len(hitDict[s_id])):
                 info = hitDict[s_id][i]
@@ -239,7 +239,7 @@ def make_fasta_unique(fastaout,options):
     header_dictionary = {}
     for header, seq in read_fasta(fastaout,False):
         header = header.split()[0]
-        if header_dictionary.has_key(header):
+        if header in header_dictionary:
             header_dictionary[header] = header_dictionary[header] + 1
         else:
             header_dictionary[header] = 1
@@ -311,7 +311,7 @@ def orf_classifier(hmmOut,hitFile,options):
                 name,sep,frame = name.rpartition('_')
             else:
                 frame = '-'
-            for identifier in hitDict.keys():
+            for identifier in list(hitDict.keys()):
                 storedShort = identifier.split(':')[0]
                 if shortName == storedShort:
                     stored = True
@@ -346,7 +346,7 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
     fastaBaseName = splitext(basename(fastaInfile))[0]
     if not hitDict:
         msg = 'No hits in file %s' %(abspath(fastaInfile))
-        print '\n%s\n' %msg
+        print('\n%s\n' %msg)
         logging.error(msg)
         return
     outfile = open(elongatedFastaOutfile,'w')
@@ -358,7 +358,7 @@ def retrieve_surroundings(hitDict,fastaInfile,elongatedFastaOutfile):
         nlen = len(seq)
         s_id = header.split()[0]
         s_id = s_id.lstrip(addition)
-        if hitDict.has_key(s_id):
+        if s_id in hitDict:
             for i in range(0,len(hitDict[s_id])):
                 header = '>' + s_id + '_seq' + str(i+1)
                 info = hitDict[s_id][i]
@@ -484,9 +484,9 @@ def remove_files(targetDir, resDir):
     glob.glob(resDir + '/trimmedReads/*.fq')
     if len(files) == 0:
         return True
-    print "\nThe following files will be DELETED!!\n\n {}\n".format(
-            '\n'.join(files))
-    ans = str(raw_input("type [y]es to continue or [n]o to abort:"))
+    print("\nThe following files will be DELETED!!\n\n {}\n".format(
+            '\n'.join(files)))
+    ans = str(input("type [y]es to continue or [n]o to abort:"))
     if ans.lower() == 'y' or ans.lower() == 'yes':
         for fileToRemove in files:
             remove_tmp_file(fileToRemove)

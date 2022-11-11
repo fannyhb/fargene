@@ -13,7 +13,7 @@ def run_prodigal(infile,outfile):
         sp.Popen(commands, stdin=sp.PIPE,stderr=sp.PIPE).communicate()
     except OSError as e:
         logging.error("OS error ({0}) : {1}\nCan't find prodigal in path".format(e.errno,e.strerror))
-        print "Can't find prodigal in path"
+        print("Can't find prodigal in path")
 
 def parse_prodigal(prodigal_file,min_orf_length):
     orfs = {}
@@ -100,5 +100,5 @@ def run_ORFFinder(infile,orfFile):
         sp.Popen(commands, stdin=sp.PIPE,stderr=sp.PIPE).communicate()
     except OSError as e:
         logging.error("OS error ({0}) : {1}\nCan't find ORFfinder in path".format(e.errno,e.strerror))
-        print "Can't find ORFfinder in path"
+        print("Can't find ORFfinder in path")
 

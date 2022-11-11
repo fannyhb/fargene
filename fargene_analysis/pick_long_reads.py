@@ -32,7 +32,7 @@ def pick_long_reads(files,length,outputfile,args):
                             tmp_length = len(seq[i])
                             j = i
                     if tmp_length < length:
-                        print header, tmp_length
+                        print(header, tmp_length)
                         longread = False
                     seq = seq[j]
                 if longread:
@@ -43,9 +43,9 @@ def pick_long_reads(files,length,outputfile,args):
                     outputfile.write('>%s\n%s\n' %(header,seq))
 
     outputfile.close()
-    print 'searched %s sequences.\n \
+    print('searched %s sequences.\n \
             %s of them were longer than %s' \
-            %(totalcount,passedcount,length)
+            %(totalcount,passedcount,length))
 
 if __name__=='__main__':
     main()

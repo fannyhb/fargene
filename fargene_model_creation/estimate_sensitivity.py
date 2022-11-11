@@ -1,7 +1,8 @@
 from os import path, makedirs, system
 from random import randint
 from multiprocessing import Pool, cpu_count
-from distutils.spawn import find_executable
+#from distutils.spawn import find_executable
+from shutil import which
 import glob
 import shlex, subprocess
 import glob
@@ -22,7 +23,7 @@ def estimate_sensitivity(reference_sequences, est_obj,args):
             target = 'for full length genes...'
         else:
             target = 'for fragments of lengths %s AA...' %(str(FRAGMENT_LENGTH))
-        print '\nEstimating sensitivity %s' %target
+        print('\nEstimating sensitivity %s' %target)
 
         create_subsets(reference_sequences,tmpdir, args.num_fragments, int(FRAGMENT_LENGTH), full_seq)
         modelfiles = glob.glob(tmpdir + "without*")
@@ -98,7 +99,7 @@ def create_subsets(fastafile,subsetpath,num_fragments, fragment_length,full_seq)
                 subsetfile.write(">%s\n%s\n" %(header2,seq2))
 
 def create_model(fastafile, alignfile, hmmfile):
-    clustalo_path = find_executable('clustalo')
+    clustalo_path = which('clustalo')
     if clustalo_path:
         logging.debug('Found clustalo at: %s', clustalo_path)
     else:
@@ -144,13 +145,13 @@ def sort_hmmerfiles(hmmerfileslist,outfile,full_seq):
                 line = line.split()
                 name = line[0]
                 score = float(line[13])
-                if not name in name_dic.keys():
+                if not name in list(name_dic.keys()):
                     name_dic[name] = score
                 elif name_dic[name] < score:
                     name_dic[name] = score
     
     outfile = open(outfile,'w')
-    for item in name_dic.values():
+    for item in list(name_dic.values()):
         outfile.write('%f\n' %(item))
 
 def pooled_sort_hmmerfiles(hmmerfileslist,outfile):
@@ -170,11 +171,11 @@ def sort_one_hmmerfile(hmmfile):
             line = line.split()
             name = line[0]
             score = float(line[13])
-            if not name in name_dic.keys():
+            if not name in list(name_dic.keys()):
                 name_dic[name] = score
             elif name_dic[name] < score:
                 name_dic[name] = score
-    return name_dic.values()
+    return list(name_dic.values())
 
 def extract_full_seq_hmm_info(hmmerfileslist,outfile):
     out = open(outfile,'w')

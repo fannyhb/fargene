@@ -46,7 +46,7 @@ def estimate_specificity(args,est_obj):
     summarized_hmmsearchfile = '%s/%s-hmmsearch-negative-sequences-full-length.txt' %(path.abspath(est_obj.resultsdir),args.modelname)
     create_model(args.reference_sequences, alignfile, hmmmodel)
 
-    print 'Estimating specificity...'
+    print('Estimating specificity...')
     
     #if full_seq:
     #    args.create_fragments = False
@@ -96,7 +96,7 @@ def sort_scores(resultsfile):
             elif name_dic[name] < score:
                 name_dic[name] = score
     with open(resultsfile,'w') as f:
-        for score in name_dic.values():
+        for score in list(name_dic.values()):
             f.write('%f\n' %(score))
 
 def create_fragments(sequence, num_fragments, fragment_length):

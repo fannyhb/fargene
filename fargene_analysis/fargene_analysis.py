@@ -3,7 +3,8 @@ from os import path, makedirs, getcwd
 from sys import argv
 from collections import defaultdict
 from multiprocessing import Pool, cpu_count
-from distutils.spawn import find_executable
+#from distutils.spawn import find_executable
+from shutil import which
 import argparse
 import logging
 import itertools
@@ -314,7 +315,7 @@ def check_executables_in_path(options, logger):
         if options.orf_predict:
             executables.append('prodigal')
     for executable in executables:
-        if not find_executable(executable):
+        if not which(executable):
             msg = ('Did not find {} in path.\n'
                     'Exiting pipeline').format(executable)
             logger.critical(msg)
@@ -415,7 +416,7 @@ def parse_fastq_input(options, Results, logger):
     logger.info('Processing and searching input files. This may take a while...')
 
     try:
-        bases_files = p.map(pooled_processing_fastq, itertools.izip((options.infiles), itertools.repeat(options)))  
+        bases_files = p.map(pooled_processing_fastq, zip((options.infiles), itertools.repeat(options)))  
     except KeyboardInterrupt:
         logger.warning('\nCaught a KeyboardInterrupt. Terminating...')
         p.terminate()
@@ -438,7 +439,7 @@ def parse_fastq_input(options, Results, logger):
     
     if not options.no_quality_filtering:
         logger.info('Performing quality control')
-        utils.quality(fastqDict.keys(), options)
+        utils.quality(list(fastqDict.keys()), options)
     logger.info('Done')
     if not options.no_assembly:
         logger.info('Running assembly using SPAdes')
@@ -459,7 +460,7 @@ def parse_fastq_input(options, Results, logger):
 def pooled_processing_fastq(fastqfile_options):
     # Cannot send logger object to functions run in a multiprocessing Pool.
     logger = logging.getLogger(__name__ + '.pooled_processing_fastq') 
-    print(logger.handlers)
+    print((logger.handlers))
     try:
         fastqfile, options = fastqfile_options[0], fastqfile_options[1]
         modelName = path.splitext(path.basename(options.hmm_model))[0]

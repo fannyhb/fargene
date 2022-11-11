@@ -8,14 +8,6 @@ import shlex, subprocess
 #import pandas as pd
 from os import path
 
-'''ref_seq_score_file = '_33_truescores.txt'
-neg_seq_score_file = 'A_dd_peptidase_scores_33.txt'
-
-num_ref_seq_runs = 103*10000;
-num_neg_seq_runs = 38*20000;
-
-preferred_sensitivity = 0.90
-max_fpr = 0.005'''
 
 def summarize_sens_or_spec(est_obj,options,only_sensitivity):
     """ Read files """
@@ -143,16 +135,16 @@ def calculate_performance(est_obj,preferred_sensitivity,options):
     
     if est_obj.full_length:
         corresponding_sens_spec_whole(potential_cutoffs,scores,ref_fraction,neg_fraction,results_file)
-        print '\nFor a preferred sensitivity of %s and max false positive rate of %s,\n'\
+        print('\nFor a preferred sensitivity of %s and max false positive rate of %s,\n'\
         'the suggested minimal score and corresponding sensitivity and specificity are:\n'\
         'score=%s\tsensitivity=%.4f\tspecificity=%.4f'\
-        %(preferred_sensitivity,max_fpr,suggested_score,sensitivity,1-specificity)
+        %(preferred_sensitivity,max_fpr,suggested_score,sensitivity,1-specificity))
     else:
         corresponding_sens_spec_frag(potential_cutoffs,scores,ref_fraction,neg_fraction,score_per_aa,results_file)
-        print '\nFor a max false positive rate of %s,\n'\
+        print('\nFor a max false positive rate of %s,\n'\
         'the suggested minimal score, score/AA and corresponding sensitivity and specificity are:\n'\
         'score=%.2f\tscore/AA=%.4f\tsensitivity=%.4f\tspecificity=%.4f'\
-        %(max_fpr,float(suggested_score),suggested_score/(float(options.fragment_lengths[0])),sensitivity,1-specificity)
+        %(max_fpr,float(suggested_score),suggested_score/(float(options.fragment_lengths[0])),sensitivity,1-specificity))
     
     plot_cross_validation(scores,ref_fraction,neg_fraction,figfile)
 

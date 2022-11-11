@@ -64,7 +64,7 @@ class Transformer(object):
             errorMsg = 'Transformer.py: Transformation of fastq file names is not working\n'\
                     'Infile: {0}\nTransformed infile: {1}\n'\
                     'I/O error({2}): {3}'.format(left_read,fullFastqFile,e.errno,e.strerror)
-            print errorMsg
+            print(errorMsg)
             exit()
         self.find_header_endings(left_read,right_read)
         trans_header = header.split()[0]
@@ -77,6 +77,6 @@ class Transformer(object):
             errorMsg = 'Transformer.py: Tranformation of fastq header is not working\n'\
                     'Original fastq header: {0}\n'\
                     'Transformed fastq header: {1}'.format(header.split()[0],transformedHeader[0])
-            print errorMsg
+            print(errorMsg)
             exit()
 
