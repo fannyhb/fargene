@@ -160,14 +160,13 @@ def run_spades(options):
     retrievedFastqGrouped = ['%s/all_retrieved_%s.fastq' %(abspath(options.res_dir),str(i))
             for i in range(1,3)]
     if not options.no_quality_filtering:
-        msg = ['cat %s/*val_%s.fq > %s'
-                %(abspath(options.trimmed_dir),str(i),retrievedFastqGrouped[i-1]) for i in range(1,3)]
-    elif not glob.glob('%s/*_1_retrieved.fq' %(options.res_dir)):
-        msg = ['cat %s/*_%s_retrieved.fastq > %s'
-                %(abspath(options.res_dir),str(i),retrievedFastqGrouped[i-1]) for i in range(1,3)]
+        sourcepatterns = ['%s/*val_%s.fq*' %(abspath(options.trimmed_dir),str(i)) for i in range(1,3)]
+    elif not glob.glob('%s/*_1_retrieved.fq*' %(options.res_dir)):
+        sourcepatterns = ['%s/*_%s_retrieved.fastq*' %(abspath(options.res_dir),str(i)) for i in range(1,3)]
     else:
-        msg = ['cat %s/*_%s.fq > %s'
-                %(abspath(options.res_dir),str(i),retrievedFastqGrouped[i-1]) for i in range(1,3)]
+        sourcepatterns = ['%s/*_%s.fq*' %(abspath(options.res_dir),str(i)) for i in range(1,3)]
+    msg = ['for f in %s; do case "$f" in *.gz) gunzip -c "$f";; *) cat "$f";; esac; done > %s'
+            %(pattern,outfile) for pattern,outfile in zip(sourcepatterns,retrievedFastqGrouped)]
     for command in msg:
         sp.run(command, shell=True)
 
