@@ -1,0 +1,25 @@
+name: fargene_env_py3
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10      # bioconda's published `fargene` recipe hardcodes
+                     # `skip: True  # [py>=30]`, so it can never build for
+                     # Python 3 as-is - this env is for the local Python 3
+                     # port instead of that recipe.
+  - numpy
+  - matplotlib
+  - hmmer=3.4       # README asks for "3.2 or older" - that's no longer available
+                     # via bioconda (only 3.4 is indexed). Watch for hmmsearch
+                     # tabular-output parsing issues; may need to build HMMER
+                     # 3.2 from source if this causes problems.
+  - emboss=6.6.0     # provides `transeq`
+  - seqtk
+  - spades           # only needed for --meta (paired-end FASTQ) mode
+  - trim-galore      # optional, only needed for --meta mode's QC step
+  - prodigal         # README calls this optional (long-read only) but nucleotide
+                     # FASTA input crashes without it even with --no-orf-predict -
+                     # confirmed required in practice, not actually optional
+  - clustalo         # only needed for fargene_model_creation (create_model)
+  - pip

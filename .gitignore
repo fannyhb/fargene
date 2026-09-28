@@ -2,4 +2,9 @@
 *.swp
 
 /dist/
-
+/build/
+*.egg-info/
+fargene_analysis.log
+# pixi environments
+.pixi/*
+!.pixi/config.toml

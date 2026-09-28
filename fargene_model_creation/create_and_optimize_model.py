@@ -1,12 +1,12 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 import argparse
 from sys import argv
 from os import path, makedirs
-from estimate_sensitivity import estimate_sensitivity
-from estimate_specificity import estimate_specificity
-from estimate_specificity import create_model
-from MetaData import MetaData
-from calculate_performance import calculate_performance, summarize_sens_or_spec
+from .estimate_sensitivity import estimate_sensitivity
+from .estimate_specificity import estimate_specificity
+from .estimate_specificity import create_model
+from .MetaData import MetaData
+from .calculate_performance import calculate_performance, summarize_sens_or_spec
 import logging
 
 def parse_args(argv):

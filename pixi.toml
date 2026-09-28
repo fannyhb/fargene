@@ -1,0 +1,30 @@
+[workspace]
+authors = ["indajuan <indajuan@users.noreply.github.com>"]
+channels = ["bioconda", "conda-forge"]
+name = "fargene"
+description = "fARGene (Python 3 port) - identification of antibiotic resistance genes from metagenomic and genomic data"
+platforms = ["osx-arm64", "osx-64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+fargene = "fargene"
+fargene-model-creation = "fargene_model_creation"
+pick-long-reads = "pick_long_reads"
+test-tutorial = "fargene -i tutorial/tutorialdata/klebsiella_plasmid.fasta --hmm-model class_b_1_2 -o /tmp/fargene_pixi_test --force"
+
+[dependencies]
+python = ">=3.7"
+numpy = "*"
+matplotlib = "*"
+# README asks for HMMER 3.2 or older; 3.4 is the only version currently
+# indexed on bioconda and has been tested to work fine.
+hmmer = "3.4.*"
+emboss = "6.6.*"
+seqtk = "*"
+spades = "*"          # only needed for --meta (paired-end FASTQ) mode
+trim-galore = "*"     # optional, only needed for --meta mode's QC step (--no-quality-filtering skips it)
+prodigal = "*"        # default ORF predictor for both long-read and short-read (metagenomic) mode
+clustalo = "*"        # only needed for fargene_model_creation
+
+[pypi-dependencies]
+fargene = { path = ".", editable = true }

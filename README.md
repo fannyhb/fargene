@@ -1,5 +1,9 @@
 # fARGene
 
+> **Python 3 fork.** This branch (`python3-port`) completes a Python 3 port of fARGene, building on the original author's own unfinished `update_to_python3` branch. It also fixes two bugs found during the port, ships the full set of resistance-gene models (bioconda's current recipe is missing several — see below), and by default no longer requires NCBI's ORFfinder for short-read data (see [Prerequisites](#prerequisites)). Full verification details are in [PORTING_NOTES.md](PORTING_NOTES.md).
+>
+> ⚠️ **The `fargene` package on bioconda is outdated and not maintained by this project's developers.** It's a community-contributed recipe, and it sources from an unrelated third-party fork rather than the original repository — as a result it's also missing several resistance-gene models (all aminoglycoside and macrolide models). Do not rely on `conda install -c bioconda fargene` until further notice. Install from source or with pixi instead (below).
+
 fARGene (Fragmented Antibiotic Resistance Gene iENntifiEr ) is a tool that takes either fragmented metagenomic data or longer sequences as input and predicts and delivers full-length antiobiotic resistance genes as output. The tool includes developed and optimized models for a number or resistance gene types,
 and the functionality to create and optimize models of your own choice of resistance genes.
 
@@ -16,11 +20,11 @@ The current version of the tool includes developed and optimized models for iden
  - Mph macrolide 2'-phosphotransferases
  - AAC aminoglycoside acetyltransferases
  - APH aminoglycoside phosphotransferases
- 
+
  Read more about fARGene here:
- 
+
  [Berglund, F., Österlund, T., Boulund, F., Marathe, N. P., Larsson, D. J., & Kristiansson, E. (2019). Identification and reconstruction  of novel antibiotic resistance genes from metagenomes. *Microbiome*, 7(1), 52.](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-019-0670-1)
- 
+
 ## Table of  contents
 
 * [Getting Started](#getting-started)
@@ -41,22 +45,22 @@ The current version of the tool includes developed and optimized models for iden
 
 ## Getting Started
 
-These instructions will get you a copy of the most up-to-date version of fARGene. 
+These instructions will get you a copy of the most up-to-date version of fARGene.
 
 ### Prerequisites
 
-- Python 2.x
+- Python 3.7+
 - [EMBOSS transeq](http://emboss.sourceforge.net/download/)
 - [seqtk](https://github.com/lh3/seqtk)
-- [HMMER](http://hmmer.org/) 3.2 or older
+- [HMMER](http://hmmer.org/) — the original recommendation was 3.2 or older; 3.4 (the only version currently indexed on bioconda) has been tested and works fine
+- [prodigal](https://github.com/hyattpd/Prodigal) — used by default for ORF prediction on **both** long-read and short-read (metagenomic) input
 - For short-read data:
   - [SPAdes](http://cab.spbu.ru/software/spades/) 3.7.0 or later
   - [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) (optional)
-  - [ORFfinder](https://www.ncbi.nlm.nih.gov/orffinder/) (optional)
-- For long-read data
-  - [prodigal](https://github.com/hyattpd/Prodigal) (optional)
 
-Some of these requirements are optional but might affect the results. If you for example skip the installation of Trim Galore!, the option `--no-quality-filtering` must be used. If you skip the installation of ORFfinder/prodigal for short-read/long-read data, the option `--no-orf-prediction` must be used. fARGene expects these tools to be available in `$PATH`.
+Some of these requirements are optional but might affect the results. If you skip the installation of Trim Galore!, the option `--no-quality-filtering` must be used. If you skip the installation of prodigal, the option `--no-orf-predict` must be used. fARGene expects these tools to be available in `$PATH`.
+
+**About ORFfinder.** The original tool used NCBI's `ORFfinder` for short-read (metagenomic) ORF prediction. This fork no longer requires it: `prodigal` is used by default there too, including for genes on assembled contigs that get cut off right at the contig boundary (very common in short-read assembly) — those get accepted as long as prodigal's own confidence score clears a threshold, since the real filtering happens downstream via the resistance-gene HMM score anyway. This was necessary because `ORFfinder` isn't distributed through any conda channel, and NCBI no longer publishes a macOS build at all (Linux-only now). If you're on Linux and have `ORFfinder` installed, pass `--orf-finder` to use it instead of prodigal, matching the original tool's behavior.
 
 For the model creation package you additionally need the following packages:
 
@@ -66,25 +70,33 @@ For the model creation package you additionally need the following packages:
 
 ### Installing
 
-#### Installing from source
+#### Installing with pixi (recommended)
+
+[pixi](https://pixi.sh) resolves and installs every non-Python prerequisite listed above (EMBOSS, seqtk, HMMER, prodigal, SPAdes, Trim Galore!, ClustalO) plus fARGene itself, in one reproducible, locked environment — no separate `conda create` step needed.
+
 ```
-git clone https://github.com/fannyhb/fargene.git
+git clone -b python3-port https://github.com/indajuan/fargene.git
 cd fargene
-python setup.py install
+pixi install
+pixi run fargene --help
 ```
+
+`pixi.lock` in this repo pins exact package versions for Linux, Intel macOS, and Apple Silicon macOS, so `pixi install` reproduces the same environment on any of those platforms. Available tasks (`pixi run <task>`): `fargene`, `fargene-model-creation`, `pick-long-reads`.
+
+If you don't have pixi yet: `curl -fsSL https://pixi.sh/install.sh | bash` (see [pixi.sh](https://pixi.sh) for other install methods).
+
+#### Installing from source (conda/pip)
+```
+git clone -b python3-port https://github.com/indajuan/fargene.git
+cd fargene
+pip install .
+```
+
+Use `pip install -e .` instead if you want an editable install for development.
 
 Note:
 
-setup.py will look for and try to install numpy and matplotlib so make sure that you either:
-- have these packages installed
-- run setup.py as root or with sudo
-- install the program in a [conda](https://conda.io/docs/user-guide/install/download.html) environment. 
-
-#### Installing from conda
-
-```
-conda install -c conda-forge -c bioconda fargene
-```
+`pip install .` will pull in numpy and matplotlib automatically, but not the non-Python prerequisites (EMBOSS, seqtk, HMMER, etc.) — install those yourself, or use `environment.yml` in this repo with `conda env create -f environment.yml` to get a working environment, or use pixi above.
 
 ## Data analysis
 
@@ -137,7 +149,7 @@ Where `hmm-model` can be any of the pre-defined models:
    - `--hmm-model aminoglycoside_model_g` (represents *aph(2'')*-type genes)
    - `--hmm-model aminoglycoside_model_h` (represents *aph(3')*/*aph(3'')*-type genes)
    - `--hmm-model aminoglycoside_model_i` (represents *aph(6)*/*aph(3')*-type genes)
-   
+
 If you choose to use your own profile hidden Markov model you need to specify the score as follows:
 
 ```
@@ -167,7 +179,7 @@ usage: fargene [-h] --infiles INFILES [INFILES ...] --hmm-model HMM_MODEL
 Searches and retrieves new and previously known genes from fragmented
 metagenomic data and genomes. Copyright (c) Fanny Berglund 2018.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --infiles INFILES [INFILES ...], -i INFILES [INFILES ...]
                         Input file(s) to be searched. Could either be in FASTA
@@ -240,7 +252,7 @@ optional arguments:
 The two most important output files are `predicted-orfs.fasta` and `predicted-orfs-amino.fasta` which are located in `output_dir/predictedGenes/`.
 
 
-This directory also contains `retrieved-contigs.fasta` and `retrieved-contigs-peptides.fasta`. Where the first file contains the (complete) contigs that passed the final full-length classification, and the second file contains the parts of the contigs that passed the final classification step that aligned with the HMM, as amino acid sequences. Note that the second file is a prediction of where the genes are located on the contig and does usually not include the start and/or the stop of the genes. 
+This directory also contains `retrieved-contigs.fasta` and `retrieved-contigs-peptides.fasta`. Where the first file contains the (complete) contigs that passed the final full-length classification, and the second file contains the parts of the contigs that passed the final classification step that aligned with the HMM, as amino acid sequences. Note that the second file is a prediction of where the genes are located on the contig and does usually not include the start and/or the stop of the genes.
 
 
 A summary of the analysis can be found in `output_dir/results_summary.txt` and the logfile is found in `output_dir/novelGeneFinder.log`.
@@ -262,7 +274,7 @@ Below is a summary of the remaining output:
 #### For genomes or longer contigs as input
 
 The output is basically the same as for the metagenomic input. The most important difference is the file
-`input_file-hmm_model_name-filtered.fasta` located in `output_dir/predictedGenes`. This file contains the sequences that passed the final classification step, but only the parts that where predicted by the HMM to be part of the gene. Since this prediction is rather conservative, the start/stop of the genes are usually not included here. The file `input_file-hmm_model_name-filtered-peptides.fasta` is the above file translated in the same frame as the gene is predicted to be located. 
+`input_file-hmm_model_name-filtered.fasta` located in `output_dir/predictedGenes`. This file contains the sequences that passed the final classification step, but only the parts that where predicted by the HMM to be part of the gene. Since this prediction is rather conservative, the start/stop of the genes are usually not included here. The file `input_file-hmm_model_name-filtered-peptides.fasta` is the above file translated in the same frame as the gene is predicted to be located.
 
 ### Examples
 
@@ -287,7 +299,7 @@ Depending on the size of your storage and the size of the dataset, the option `-
 First analysis
 
 ```
-fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_a -o class_a_out -p num_of_processes 
+fargene -i path/to/paired_end_fastqfiles/*.fastq --meta --hmm-model class_a -o class_a_out -p num_of_processes
 --store-peptides
 ```
 
@@ -317,42 +329,44 @@ Where both the reference and negative sequences should be protein sequences.
 Run `fargene_model_creation --help` to get all the options of the model creation and optimization
 
 ```
-usage: fargene_model_creation [-h] --reference-sequences REFERENCE_SEQUENCES        
-                              [--negative-sequences NEGATIVE_SEQUENCES]             
-                              [--output OUTPUT_DIR] [--modelname MODELNAME]         
-                              [--fragment-lengths FRAGMENT_LENGTHS]                 
-                              [--num-fragments NUM_FRAGMENTS] [--only-sens]         
-                              [--only-spec] [--only-full-length] [--only-fragments] 
-                                                                              
-A program to create and optimize profile hidden Markov models                 
-                                                                              
-optional arguments:                                                           
-  -h, --help            show this help message and exit                       
-  --reference-sequences REFERENCE_SEQUENCES, -rin REFERENCE_SEQUENCES         
-                        The sequences that the model should be built of.      
-  --negative-sequences NEGATIVE_SEQUENCES, -nin NEGATIVE_SEQUENCES            
-                        The sequences that should be used as the negative     
-                        dataset. Should preferable be similar sequences but   
-                        without the desired phenotype.                        
-  --output OUTPUT_DIR, -o OUTPUT_DIR                                          
-                        The directory where the output should be saved.       
-  --modelname MODELNAME                                                       
-                        The name of the new model                             
-  --fragment-lengths FRAGMENT_LENGTHS, -l FRAGMENT_LENGTHS                    
-                        The length (aa) of the fragments that should be used  
-                        to determine the threshold score for metagenomic      
-                        input. (default: 33 AA)                               
-  --num-fragments NUM_FRAGMENTS                                               
-                        The number of fragments that should be created from   
-                        each gene. (default: 10 000)                          
+usage: fargene_model_creation [-h] --reference-sequences REFERENCE_SEQUENCES
+                              --negative-sequences NEGATIVE_SEQUENCES
+                              [--output OUTPUT_DIR] [--modelname MODELNAME]
+                              [--fragment-lengths FRAGMENT_LENGTHS]
+                              [--num-fragments NUM_FRAGMENTS] [--only-sens]
+                              [--only-spec] [--only-full-length]
+                              [--only-fragments]
+
+A program to create and optimize profile hidden Markov models. Copyright (c)
+Fanny Berglund 2018.
+
+options:
+  -h, --help            show this help message and exit
+  --reference-sequences REFERENCE_SEQUENCES, -rin REFERENCE_SEQUENCES
+                        The sequences that the model should be built of.
+  --negative-sequences NEGATIVE_SEQUENCES, -nin NEGATIVE_SEQUENCES
+                        The sequences that should be used as the negative
+                        dataset. Should preferable be similar sequences but
+                        without the desired phenotype.
+  --output OUTPUT_DIR, -o OUTPUT_DIR
+                        The directory where the output should be saved.
+  --modelname MODELNAME
+                        The name of the new model
+  --fragment-lengths FRAGMENT_LENGTHS, -l FRAGMENT_LENGTHS
+                        The length (aa) of the fragments that should be used
+                        to determine the threshold score for metagenomic
+                        input. (default: 33 AA)
+  --num-fragments NUM_FRAGMENTS
+                        The number of fragments that should be created from
+                        each gene. (default: 10 000)
   --only-sens           Should be used if only sensitivity of the model should
-                        be estimated.                                         
-  --only-spec           Should be used if only the specificity of the model   
-                        should be estimated.                                  
-  --only-full-length    Should be used if you only want to optimize the       
-                        threshold score for full length genes.                
-  --only-fragments      Should be used if you only want to optimize the       
-                        threshold score for full fragmented genes.                     
+                        be estimated.
+  --only-spec           Should be used if only the specificity of the model
+                        should be estimated.
+  --only-full-length    Should be used if you only want to optimize the
+                        threshold score for full length genes.
+  --only-fragments      Should be used if you only want to optimize the
+                        threshold score for full fragmented genes.
 ```
 
 ### Output
@@ -366,7 +380,7 @@ This results is also visualized in the figures `resulting_sensitivity_specificit
 The combined results from the `hmmsearch` of full-length sequences are called `modelname-hmmsearch-refrence-sequences-full-length.txt`and `modelname-hmmsearch-negative-sequences-full-length.txt` and are useful to detect genes responsible for potenial outline scores.
 
 ## Tutorial
- 
+
 For a tutorial of how to use fargene click [here](tutorial/tutorial.md).
 
 ## Other included tools

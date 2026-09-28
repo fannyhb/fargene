@@ -26,10 +26,8 @@ class ResultsSummary(object):
         self.retrievedSequences = count
 
     def count_hits(self,hitFile):
-        msg = 'wc -l %s' %hitFile
-        commands = shlex.split(msg)
-        c,_ = sp.Popen(commands, stdin=sp.PIPE,stdout = sp.PIPE).communicate()
-        self.retrievedSequences = self.retrievedSequences + int(c.split()[0])
+        with open(hitFile) as f:
+            self.retrievedSequences += sum(1 for _ in f)
 
     def count_contigs(self,contigFile):
         count = 0

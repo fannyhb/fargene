@@ -1,19 +1,18 @@
-#!/usr/bin/env python2.7
-from os import path, makedirs, getcwd
+#!/usr/bin/env python3
+from os import path
 from sys import argv
 from collections import defaultdict
 from multiprocessing import Pool, cpu_count
-from distutils.spawn import find_executable
+from shutil import which
 import argparse
 import logging
 import itertools
-import importlib
 
-from Transformer import Transformer
-from HmmModel import HmmModel
-from predict_orfs import predict_orfs_orfFinder, predict_orfs_prodigal
-from ResultsSummary import ResultsSummary
-import utils
+from .Transformer import Transformer
+from .HmmModel import HmmModel
+from .predict_orfs import predict_orfs_orfFinder, predict_orfs_prodigal
+from .ResultsSummary import ResultsSummary
+from . import utils
 
 def parse_args(argv):
     desc = 'Searches and retrieves new and previously known genes from fragmented metagenomic data and genomes'
@@ -32,12 +31,12 @@ def parse_args(argv):
     parser.add_argument('--meta-score','-sm', dest='meta_score', type=float,
                         help = 'The threshold score for a fragment to be classified as a positive. '\
                         'Expressed as score per amino acid (default: %(default)s).')
-    
+
     parser.add_argument('--output','-o', dest='out_dir', metavar='OUTDIR',
                         help='The output directory for the whole run (default: %(default)s).')
     parser.add_argument('--force','-f',action='store_true',
                         help='Overwrite output directory if it exists (default: %(default)s).')
-    
+
     parser.add_argument('--tmp-dir', dest='tmp_dir',
                         help='Directory for (sometimes large) intermediate files. '\
                                 '(default: OUT_DIR/tmpdir)')
@@ -52,7 +51,7 @@ def parse_args(argv):
     parser.add_argument('--min-orf-length', type=int, dest='min_orf_length' ,
                         help='The minimal length for a retrieved predicted ORF (nt). '\
                                 '(default: 90%% of the length of the chosen hmm.)')
-   
+
     parser.add_argument('--retrieve-whole', action='store_true', dest='retrieve_whole',
                         help='Use this flag if the whole sequence where a hit is detected should be retrieved (default: %(default)s).')
 
@@ -112,9 +111,9 @@ def parse_args(argv):
 
     logger = logging.getLogger(__name__)
     if options.loglevel == 'DEBUG':
-	    logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
     else:
-	    logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
     logging_format_file = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
     logging_format_console = logging.Formatter('%(levelname)s: %(message)s')
     file_handler = logging.FileHandler(options.logfile)
@@ -127,7 +126,7 @@ def parse_args(argv):
     return options, logger
 
 def main():
-    
+
     options, logger = parse_args(argv)
     check_executables_in_path(options, logger)
 
@@ -138,7 +137,7 @@ def main():
     options.assembly_dir = '%s/spades_assembly' %(outdir)
     if not options.tmp_dir:
         options.tmp_dir = '%s/tmpdir' %(outdir)
-    
+
     if path.isdir(options.out_dir) and not options.force:
         msg = ('The directory {0} already exists. To overwrite use the'
                 ' --force flag').format(options.out_dir)
@@ -178,7 +177,7 @@ def main():
     logger.info('Starting fARGene')
     logger.info('Starting pipeline, planning to analyze %s files', len(options.infiles))
     logger.info('Running on %s processes' %str(options.processes))
-    
+
 
     if not options.meta:
         parse_fasta_input(options, Results, logger)
@@ -192,7 +191,7 @@ def main():
         numGenes = Results.retrievedContigs
         retrieved = 'retrieved contigs'
     logger.info('Done with pipeline')
-    
+
     msg = ('fARGene is done.\n'
            'Total number of {}: {}\n'
            'Total number of predicted ORFS longer than {} nt: {}\n'
@@ -251,13 +250,13 @@ def check_arguments(options, logger):
     if not predefined:
         if options.long_score is None:
             msg = "No threshold score for whole genes was given.\n"+\
-            "Please provide one using the option --score"     
+            "Please provide one using the option --score"
             logger.critical(msg)
             logger.info('Exiting pipeline')
             exit()
         if options.meta and options.meta_score is None:
             msg = "No threshold score for metagenomic fragments was given.\n"+\
-            "Please provide one using the option --meta-score"     
+            "Please provide one using the option --meta-score"
             logger.critical(msg)
             logger.info('Exiting pipeline')
             exit()
@@ -274,7 +273,7 @@ def check_arguments(options, logger):
             msg = "If not using the meta option, the input file(s) must be FASTA"
             logger.critical(msg)
             logger.info('Exiting pipeline')
-            exit()              
+            exit()
 
     if not options.min_orf_length:
         options.min_orf_length = utils.decide_min_ORF_length(options.hmm_model)
@@ -309,12 +308,12 @@ def check_executables_in_path(options, logger):
         if not options.no_quality_filtering:
             executables.append('trim_galore')
         if options.orf_predict:
-            executables.append('ORFfinder')
+            executables.append('ORFfinder' if options.orf_finder else 'prodigal')
     else:
         if options.orf_predict:
             executables.append('prodigal')
     for executable in executables:
-        if not find_executable(executable):
+        if not which(executable):
             msg = ('Did not find {} in path.\n'
                     'Exiting pipeline').format(executable)
             logger.critical(msg)
@@ -338,7 +337,7 @@ def parse_fasta_input(options, Results, logger):
             utils.classifier(hmmOut, hitFile, options)
             hitDict = utils.create_dictionary(hitFile, options)
             utils.retrieve_fasta(hitDict, fastafile, fastaOut, options)
-        else: 
+        else:
             if options.store_peptides:
                 peptideFile ='%s/%s-amino.fasta' %(path.abspath(options.tmp_dir), fastaBaseName)
                 utils.translate_sequence(fastafile, peptideFile, options, frame)
@@ -357,7 +356,7 @@ def parse_fasta_input(options, Results, logger):
                 if path.isfile(elongated_fasta):
                     if not options.orf_finder:
                         tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir,fastaBaseName)
-                        predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length) 
+                        predict_orfs_prodigal(elongated_fasta, options.tmp_dir, tmpORFfile, options.min_orf_length)
                         orfFile = utils.retrieve_predicted_orfs(options, tmpORFfile)
                     else:
                         tmpORFfile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, fastaBaseName)
@@ -370,12 +369,12 @@ def parse_fasta_input(options, Results, logger):
                     tmpFastaOut = utils.make_fasta_unique(fastaOut, options)
                     utils.retrieve_predicted_genes_as_amino(options, tmpFastaOut, aminoOut, frame='6')
         Results.count_hits(hitFile)
-    if path.isfile(orfFile):                                      
-        if not options.orf_finder:                                
-            Results.count_orfs_genomes(orfFile)                   
-        else:                                                     
+    if path.isfile(orfFile):
+        if not options.orf_finder:
+            Results.count_orfs_genomes(orfFile)
+        else:
             Results.predictedOrfs = Results.count_contigs(orfFile)
-                                                              
+
     return orfFile
 
 
@@ -394,7 +393,6 @@ def parse_fastq_input(options, Results, logger):
     5) Retrieves the hits in fastq using seqtk
     '''
     logger.info('Starting parse_fastq_input')
-    modelName = path.splitext(path.basename(options.hmm_model))[0]
     fastqPath = path.dirname(path.abspath(options.infiles[0])) # Assuming the path is the same to every input fastqfile
     if options.processes > cpu_count():
         options.processes = cpu_count()
@@ -409,19 +407,16 @@ def parse_fastq_input(options, Results, logger):
             elif path.getsize(fastafile) == 0:
                 utils.convert_fastq_to_fasta(fastqfile, fastafile)
 
-   
-    p = Pool(options.processes)
-    
+
     logger.info('Processing and searching input files. This may take a while...')
 
     try:
-        bases_files = p.map(pooled_processing_fastq, itertools.izip((options.infiles), itertools.repeat(options)))  
+        with Pool(options.processes) as p:
+            bases_files = p.starmap(pooled_processing_fastq, zip(options.infiles, itertools.repeat(options)))
     except KeyboardInterrupt:
         logger.warning('\nCaught a KeyboardInterrupt. Terminating...')
-        p.terminate()
-        p.join()
         exit()
-        
+
     fastqDict = defaultdict(list)
     transformer = Transformer()
     transformer.find_file_difference(options.infiles[0], options.infiles[1])
@@ -429,13 +424,13 @@ def parse_fastq_input(options, Results, logger):
     transformer.verify_transform_is_working(options.infiles[0],options.infiles[1])
 
     logger.info('Retrieving hits from input files.')
-    
+
     for fastqbase_hitfile in bases_files:
         fastqDict = utils.add_hits_to_fastq_dictionary(fastqbase_hitfile[1],
                 fastqDict, fastqbase_hitfile[0], options, transformer)
     logger.info('Retrieving fastqfiles')
-    utils.retrieve_paired_end_fastq(fastqDict, fastqPath, options, transformer) 
-    
+    utils.retrieve_paired_end_fastq(fastqDict, fastqPath, options, transformer)
+
     if not options.no_quality_filtering:
         logger.info('Performing quality control')
         utils.quality(fastqDict.keys(), options)
@@ -446,22 +441,33 @@ def parse_fastq_input(options, Results, logger):
         logger.info('Done')
         logger.info('Running retrieval of assembled genes.')
         retrievedContigs,hits = utils.retrieve_assembled_genes(options)
-        if path.isfile(retrievedContigs):
+        if path.isfile(retrievedContigs) and options.orf_predict:
             logger.info('Predicting ORFS.')
             elongatedFasta ='%s/%s-gene-elongated.fasta' %(path.abspath(options.tmp_dir), path.basename(retrievedContigs).rpartition('.')[0])
             orfFile = '%s/%s-long-orfs.fasta' %(options.tmp_dir, path.basename(retrievedContigs).rpartition('.')[0])
             utils.retrieve_surroundings(hits, retrievedContigs, elongatedFasta)
-            predict_orfs_orfFinder(elongatedFasta, options.tmp_dir, orfFile, options.min_orf_length) 
+            if options.orf_finder:
+                predict_orfs_orfFinder(elongatedFasta, options.tmp_dir, orfFile, options.min_orf_length)
+            else:
+                # Assembled metagenomic contigs are frequently cut off right
+                # at (or just past) the gene boundary, so a real hit often
+                # gets reported by prodigal as "partial" purely because it
+                # runs into the edge of the contig, not because it's
+                # actually incomplete. allow_partial=True keeps those,
+                # gated on prodigal's own confidence score - see
+                # PARTIAL_ORF_MIN_CONFIDENCE in predict_orfs.py. This is the
+                # default because ORFfinder is an NCBI standalone binary not
+                # available through conda; --orf-finder switches back to it
+                # where it is installed.
+                predict_orfs_prodigal(elongatedFasta, options.tmp_dir, orfFile, options.min_orf_length, allow_partial=True)
             retrievedOrfs = utils.retrieve_predicted_orfs(options, orfFile)
             Results.predictedOrfs = Results.count_contigs(retrievedOrfs)
         Results.retrievedContigs = Results.count_contigs(retrievedContigs)
 
-def pooled_processing_fastq(fastqfile_options):
+def pooled_processing_fastq(fastqfile, options):
     # Cannot send logger object to functions run in a multiprocessing Pool.
-    logger = logging.getLogger(__name__ + '.pooled_processing_fastq') 
-    print(logger.handlers)
+    logger = logging.getLogger(__name__ + '.pooled_processing_fastq')
     try:
-        fastqfile, options = fastqfile_options[0], fastqfile_options[1]
         modelName = path.splitext(path.basename(options.hmm_model))[0]
         fastqBaseName = path.splitext(path.basename(fastqfile))[0]
         fastqFilesBaseName = path.basename(fastqfile)
@@ -494,8 +500,7 @@ def pooled_processing_fastq(fastqfile_options):
         logger.info('Start to classify')
         utils.classifier(hmmOut, hitFile, options)
         logger.info('Translating, searching, and classification done')
-        
-        fastqPath = path.dirname(path.abspath(fastqfile)) # Assuming the path is the same to every input fastqfile
+
         return fastqFilesBaseName, hitFile
     except KeyboardInterrupt:
         raise KeyboardInterruptError()
